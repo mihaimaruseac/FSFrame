@@ -7,6 +7,8 @@ contains all functions needed to build the GUI and interact with it but it
 exports only the main building function to the outside.
 -}
 
+import Frame.Types
+
 {-
 The main GUI building function.
 -}
