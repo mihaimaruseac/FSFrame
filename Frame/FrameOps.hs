@@ -29,10 +29,18 @@ fcreate name typ parents = do
   checkNoIndividualParent ps
   -- 1. Build one frame
   let f = Frame name typ [] [] ps
-  -- TODO: update list of parents
-  -- TODO: update parents' list of children
-  -- 2. Add frame to world
+  -- 2. Update parents' list of children
+  modify . first $ map (updateParent f ps)
+  -- 3. Add frame to world
   modify . first $ (:) f
+
+{-
+Update the parents of a frame.
+-}
+updateParent :: Frame -> [Frame] -> Frame -> Frame
+updateParent s ps p
+  | p `elem` ps = let ss = frameChildren p in p { frameChildren = s : ss }
+  | otherwise = p
 
 {-
 Checks for duplicate frame names.
