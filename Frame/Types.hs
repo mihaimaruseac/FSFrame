@@ -63,12 +63,12 @@ data Frame = Frame
   , frameSlots :: [Slot]
   , frameChildren :: [Frame]
   , frameParents :: [Frame]
-  } deriving (Eq, Show, Read)
+  } deriving (Eq, Read)
 
 {-
 A frame can be of two kinds: generic or individual.
 -}
-data FrameType = Generic | Individual deriving (Eq, Show, Read)
+data FrameType = Generic | Individual deriving (Eq, Read)
 
 {-
 The relationship between two frames can be either `Member` or `Subset`,
@@ -135,6 +135,20 @@ A search can be done:
     to defaults and actions being enabled and `prefDefaultThenNeeded` value).
 -}
 data SearchType = Z | N deriving (Eq, Show, Read)
+
+{-
+Instance of class `Show` for `Frame`.
+-}
+instance Show Frame where
+  show (Frame name typ slots ch _) = name ++ ":" ++ show typ
+    ++ show (map frameName ch) ++ show slots
+
+{-
+Instance of class `Show` for `FrameType`.
+-}
+instance Show FrameType where
+  show Individual = "I"
+  show Generic = "G"
 
 {-
 Utility function to determine the relationship between two frames.
