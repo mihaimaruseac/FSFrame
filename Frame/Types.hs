@@ -8,12 +8,19 @@ application. It also contains useful functions for working with those types
 -}
 
 {-
+A world consists of a list of frames. The relationships between them is stored
+in each frame.
+-}
+type World = [Frame]
+
+{-
 A frame has a name, a type and a list of slots. It also contains a list of
 other frames, represented as children of this node when the entire hierarchy
 is represented as a DAG. The exact signification of the `frameChildren` list
 depends on the `frameType` attribute (it is the inverse of `FrameRel` type.
 Also, the inverse relationship is presented via the `frameParents` list
-(multiple inheritance is allowed).
+(multiple inheritance is allowed). Operations to work with a frame are
+included in `FrameOps.hs`
 -}
 data Frame = Frame
   { frameName :: String
@@ -64,14 +71,14 @@ data Obj
 {-
 An action is a precompiled program to be executed when triggered by some
 conditions. The precompilation and the execution of these actions is handled
-in a separate module.
+in `Action.hs` module.
 -}
 type Action = String -- TODO: this should be changed
 
 {-
 A preference record contains all user preferences regarding the frame system.
 It can be changed when needed. Functions for setting and temporarily changing
-the preferences are defined in a separate module.
+the preferences are defined in `Preferences.hs` module.
 -}
 data Pref = Pref
   { prefDefaultsEnabled :: Bool
