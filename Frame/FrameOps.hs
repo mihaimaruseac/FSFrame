@@ -38,10 +38,9 @@ fcreate name typ parents = do
 Checks for duplicate frame names.
 -}
 checkName :: String -> [String] -> State FSState ()
-checkName name wnames = do
-  case name `elem` wnames of
-    True -> error $ "Duplicate frame name " ++ name
-    _ -> return ()
+checkName name wnames
+  | name `elem` wnames = error $ "Duplicate frame name " ++ name
+  | otherwise = return ()
 
 {-
 Checks for frame of type `Individual` being parents of others.
