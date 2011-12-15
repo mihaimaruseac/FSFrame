@@ -25,7 +25,7 @@ fcreate name typ parents = do
   let ps = filter (\w -> (frameName w) `elem` parents) w
   checkNoIndividualParent ps
   -- 1. Build one frame
-  let f = Frame name typ [] [] []
+  let f = Frame name typ [] [] ps
   -- TODO: update list of parents
   -- TODO: update parents' list of children
   -- 2. Add frame to world
