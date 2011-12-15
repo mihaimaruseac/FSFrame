@@ -12,12 +12,15 @@ A frame has a name, a type and a list of slots. It also contains a list of
 other frames, represented as children of this node when the entire hierarchy
 is represented as a DAG. The exact signification of the `frameChildren` list
 depends on the `frameType` attribute (it is the inverse of `FrameRel` type.
+Also, the inverse relationship is presented via the `frameParents` list
+(multiple inheritance is allowed).
 -}
 data Frame = Frame
   { frameName :: String
   , frameType :: FrameType
   , frameSlots :: [Slot]
   , frameChildren :: [Frame]
+  , frameParents :: [Frame]
   } deriving (Eq, Show, Read)
 
 {-
