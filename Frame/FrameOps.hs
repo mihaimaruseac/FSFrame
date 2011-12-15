@@ -25,7 +25,7 @@ fcreate name typ parents = do
   checkName name wnames
   checkAllParentsKnown parents wnames
   checkParentCount typ $ length parents
-  let ps = filter (\w -> (frameName w) `elem` parents) w
+  let ps = filter (\w -> frameName w `elem` parents) w
   checkNoIndividualParent ps
   -- 1. Build one frame
   let f = Frame name typ [] [] ps
@@ -49,7 +49,7 @@ checkNoIndividualParent :: [Frame] -> State FSState ()
 checkNoIndividualParent [] = return ()
 checkNoIndividualParent (f:fs)
   | frameType f == Individual = error $ "Individuals cannot be parents: " ++ fn
-  | otherwise = return ()
+  | otherwise = checkNoIndividualParent fs
   where
     fn = frameName f
 
