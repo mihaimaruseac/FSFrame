@@ -41,7 +41,7 @@ Checks if a name is valid.
 -}
 checkValidName :: String -> State FSState ()
 checkValidName s
-  | and (map isAlphaNum s) && isAlpha (head s) = return ()
+  | all isAlphaNum s && isAlpha (head s) = return ()
   | otherwise = error $ "Invalid name <" ++ s ++ ">"
 
 {-
