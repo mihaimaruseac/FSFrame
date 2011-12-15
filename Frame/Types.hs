@@ -8,6 +8,41 @@ application. It also contains useful functions for working with those types
 -}
 
 {-
+Commands to manipulate the entire frame system (frames or preferences).
+-}
+data FSCmd
+  = FCREATE String FrameType [Frame] -- FCREATE name type [parents]
+  | FGET String String -- FGET frame_name slot_name
+  | FPUT String String Obj -- FPUT frame_name slot_name value
+  | FSETPARAMS ParamSetting Bool -- FSETPARAMS paramtype value
+  | FGETPARAMS ParamSetting -- FGETPARAMS paramtype
+  deriving (Eq, Show, Read)
+
+{-
+Parameter settings.
+-}
+data ParamSetting
+  = DefaultsEnabled -- select if default values can be used
+  | ActionsEnabled -- select if actions can be triggered
+  | DefaultsThenNeeded
+  -- select if default values are consulted before the action is triggered
+  | SearchTypeIsZ -- selects if searching in Z order or in N order
+  deriving (Eq, Show, Read)
+
+{-
+The internal state of the frame system consists of all frames and the user
+preferences.
+-}
+type FSState = (World, Pref)
+
+{-
+This is the initial state: an empty world, defaults and actions are enabled,
+default values have higher precedence and we are searching in Z order.
+-}
+initialState :: FSState
+initialState = ([], Pref True True True True)
+
+{-
 A world consists of a list of frames. The relationships between them is stored
 in each frame.
 -}
@@ -87,7 +122,8 @@ data Pref = Pref
   -- if False, no action will be executed until it is switched to True
   , prefDefaultThenNeeded :: Bool
   -- if True, default values have higher priority than if-needed actions
-  , prefSearchType :: SearchType
+  , prefSearchTypeIsZ :: Bool
+  -- if True, search is done in Z order (see `SearchType` below)
   -- TODO: this can be changed
   } deriving (Eq, Show, Read)
 
@@ -111,4 +147,22 @@ getFrameRel f1@(Frame {frameType = ft1}) f2@(Frame {frameType = ft2})
   | ft1 == Individual && ft2 == Generic = Member
   | ft1 == Generic && ft2 == Generic = Subset
   | otherwise = error $ "No relationship between " ++ (show f1) ++ " and " ++ (show f2)
+
+{-
+Utility function to convert from a `prefSearchTypeIsZ` to a `SearchType`
+value.
+-}
+getSearchType :: Bool -> SearchType
+getSearchType True = Z
+getSearchType False = N
+
+{-
+Returns the world from a `FSState` state.
+-}
+fsWorld = fst
+
+{-
+Returns the preferences from a `FSState` state.
+-}
+fsPrefs = snd
 
