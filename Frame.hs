@@ -8,5 +8,5 @@ can see it and declare it to be the main entry point of the `frame`
 application.
 -}
 
-import Frame.GUI (frameGUI)
+import Frame.GUI --(frameGUI)
 
