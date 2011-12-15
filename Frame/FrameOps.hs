@@ -6,8 +6,8 @@ This module holds the definitions for each operation working on a frame or the
 entire world.
 -}
 
-import Control.Arrow (first)
-import Control.Monad.State (modify, gets, State)
+import Control.Arrow --(first)
+import Control.Monad.Trans.State.Strict --(modify, gets, State)
 
 import Frame.Types
 
