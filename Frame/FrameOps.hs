@@ -11,6 +11,9 @@ import Control.Monad.Trans.State.Strict --(modify, gets, State)
 
 import Frame.Types
 
+import Debug.Trace
+test = execState (fcreate "zxcv" Individual ["asdf"]) $ execState (fcreate "qwer" Individual ["asdf"]) $ execState (fcreate "asdf" Generic []) initialState
+
 {-
 Evaluates a `FCREATE` command.
 -}
