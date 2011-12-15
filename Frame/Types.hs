@@ -146,7 +146,7 @@ getFrameRel :: Frame -> Frame -> FrameRel
 getFrameRel f1@(Frame {frameType = ft1}) f2@(Frame {frameType = ft2})
   | ft1 == Individual && ft2 == Generic = Member
   | ft1 == Generic && ft2 == Generic = Subset
-  | otherwise = error $ "No relationship between " ++ (show f1) ++ " and " ++ (show f2)
+  | otherwise = error $ "No relationship between " ++ show f1 ++ " and " ++ show f2
 
 {-
 Utility function to convert from a `prefSearchTypeIsZ` to a `SearchType`

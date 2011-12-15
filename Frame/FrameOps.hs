@@ -6,6 +6,7 @@ This module holds the definitions for each operation working on a frame or the
 entire world.
 -}
 
+import Control.Arrow (first)
 import Control.Monad.State (modify, gets, State)
 
 import Frame.Types
@@ -21,5 +22,5 @@ fcreate name typ parents = do
   -- TODO: update list of parents
   -- TODO: update parents' list of children
   -- 2. Add frame to world
-  modify (\(w, p) -> (f:w, p))
+  modify . first $ (:) f
 
