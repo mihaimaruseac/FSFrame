@@ -8,6 +8,7 @@ entire world.
 
 import Control.Arrow --(first)
 import Control.Monad.Trans.State.Strict --(modify, gets, State)
+import Data.Char
 
 import Frame.Types
 
@@ -20,9 +21,10 @@ Evaluates a `FCREATE` command.
 fcreate :: String -> FrameType -> [String] -> State FSState ()
 fcreate name typ parents = do
   -- 0. check conditions
+  checkValidName name
   w <- gets fsWorld
   let wnames = map frameName w
-  checkName name wnames
+  checkFrameName name wnames
   checkAllParentsKnown parents wnames
   checkParentCount typ $ length parents
   let ps = filter (\w -> frameName w `elem` parents) w
@@ -35,6 +37,14 @@ fcreate name typ parents = do
   modify . first $ (:) f
 
 {-
+Checks if a name is valid.
+-}
+checkValidName :: String -> State FSState ()
+checkValidName s
+  | and (map isAlphaNum s) && isAlpha (head s) = return ()
+  | otherwise = error $ "Invalid name <" ++ s ++ ">"
+
+{-
 Update the parents of a frame.
 -}
 updateParent :: Frame -> [Frame] -> Frame -> Frame
@@ -45,8 +55,8 @@ updateParent s ps p
 {-
 Checks for duplicate frame names.
 -}
-checkName :: String -> [String] -> State FSState ()
-checkName name wnames
+checkFrameName :: String -> [String] -> State FSState ()
+checkFrameName name wnames
   | name `elem` wnames = error $ "Duplicate frame name " ++ name
   | otherwise = return ()
 
