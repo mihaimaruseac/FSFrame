@@ -7,8 +7,10 @@ entire world.
 -}
 
 import Control.Arrow --(first)
+import Control.Monad
 import Control.Monad.Trans.State.Strict --(modify, gets, State)
 import Data.Char
+import Data.Maybe
 
 import Frame.Types
 
@@ -54,7 +56,7 @@ fput fname sname value defaultval ifneeded ifadded = do
   -- 3. update frame with new slot
   let f' = updateFrameSlot f s
   -- 4. update world
-  modify . first $ \w -> f' : (filter (\f -> frameName f /= fname) w)
+  modify . first $ \w -> f' : filter (\f -> frameName f /= fname) w
 
 {-
 Updates one frame's slot with the given one. Removes any existing slot with
@@ -64,7 +66,7 @@ updateFrameSlot :: Frame -> Slot -> Frame
 updateFrameSlot f s = f { frameSlots = ss }
   where
     n = slotName s
-    ss = s : (filter (\x -> slotName x /= n) $ frameSlots f)
+    ss = s : filter (\x -> slotName x /= n) (frameSlots f)
 
 {-
 Composes two slots with the same name (checked by the caller). The first
@@ -76,10 +78,10 @@ combineSlots Nothing s = s
 combineSlots (Just s) s' = Slot name value defval ifn ifa
   where
     name = slotName s -- same as slotName s'
-    value = let v = slotValue s' in if v == Nothing then slotValue s else v
-    defval = let v = slotDefault s' in if v == Nothing then slotDefault s else v
-    ifn = let v = slotIfNeeded s' in if v == Nothing then slotIfNeeded s else v
-    ifa = let v = slotIfAdded s' in if v == Nothing then slotIfAdded s else v
+    value = slotValue s' `mplus` slotValue s'
+    defval = slotDefault s' `mplus` slotDefault s
+    ifn = slotIfNeeded s' `mplus` slotIfNeeded s
+    ifa = slotIfAdded s' `mplus` slotIfAdded s
 
 {-
 Gets a frame given its name.
@@ -100,7 +102,7 @@ getSlotNamed f sname
     case this_slot of
       [] -> Nothing
       [s] -> Just s
-      _ -> error $ "The impossible happened in getSlotNamed."
+      _ -> error "The impossible happened in getSlotNamed."
 
 {-
 Checks if a name is valid.
