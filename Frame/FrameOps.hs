@@ -25,7 +25,16 @@ test =
   execState (fcreate "Truck" Generic "Vehicle") $
   execState (fcreate "Car" Generic "Vehicle") $
   execState (fcreate "Vehicle" Generic "ROOT") initialState
-testput = execState (fput "zxcv" "mm" (Just (I 42)) Nothing Nothing Nothing) test
+testput =
+  execState (fput "Vehicle" "fuelConsumption" (Just (R 4.2)) Nothing Nothing Nothing) $
+  execState (fput "Vehicle" "rom_price" Nothing Nothing (Just "-1") Nothing) $ -- TODO: implement proper action
+  execState (fput "Roman" "rom_price" (Just (I 52)) Nothing Nothing Nothing) $
+  execState (fput "Logan" "rom_price" (Just (I 42)) Nothing Nothing Nothing) $
+  execState (fput "Logan" "country" (Just (S "Romania")) Nothing Nothing Nothing) $
+  execState (fput "Roman" "country" (Just (S "Romania")) Nothing Nothing Nothing) $
+  execState (fput "GermanCar" "country" (Just (S "Germany")) Nothing Nothing Nothing) $
+  execState (fput "JapaneseCar" "country" (Just (S "Japan")) Nothing Nothing Nothing) $
+  execState (fput "Vehicle" "country" Nothing (Just (S "?")) Nothing Nothing) test
 
 {-
 Evaluates a `FCREATE` command.
