@@ -151,6 +151,12 @@ instance Show Frame where
     ++ show (map frameName ch) ++ show slots
 
 {-
+Instance of class `Eq` for `Frame`.
+-}
+instance Eq Frame where
+  f1 == f2 = frameName f1 == frameName f2
+
+{-
 Instance of class `Show` for `FrameType`.
 -}
 instance Show FrameType where
