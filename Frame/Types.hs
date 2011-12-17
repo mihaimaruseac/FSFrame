@@ -118,7 +118,7 @@ data Obj
   | R Double
   | S String
   | A Action
-  | F Frame
+  | F String -- A Frame but keep only its name
   deriving (Eq, Show, Read)
 
 {-
