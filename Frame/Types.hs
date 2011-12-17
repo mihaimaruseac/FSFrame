@@ -158,7 +158,7 @@ data SearchType = Z | N deriving (Eq, Show, Read)
 Instance of class `Show` for `Frame`.
 -}
 instance Show Frame where
-  show (Frame name typ slots ch _) = name ++ ":" ++ show typ
+  show (Frame name typ slots ch _) = show typ ++ ":" ++ name
     ++ show (map frameName ch) ++ show slots
 
 {-
