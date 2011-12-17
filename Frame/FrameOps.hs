@@ -14,6 +14,7 @@ import Frame.Types
 
 import Debug.Trace
 test = execState (fcreate "zxcv" Individual ["asdf"]) $ execState (fcreate "qwer" Individual ["asdf"]) $ execState (fcreate "asdf" Generic []) initialState
+testput = execState (fput "zxcv" "mm" (Just (I 42)) Nothing Nothing Nothing) test
 
 {-
 Evaluates a `FCREATE` command.
