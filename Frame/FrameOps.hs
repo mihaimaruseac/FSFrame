@@ -49,17 +49,18 @@ Evaluates a `FPUT` command.
 fput :: String -> String -> Maybe Obj -> Maybe Obj -> Maybe Action ->
   Maybe Action -> State FSState ()
 fput fname sname value defaultval ifneeded ifadded = do
-  -- 0. check conditions
+  -- 1. check validity of names
   checkValidName sname -- fname should exist, thus not checking
+  -- 2. get frame to modify
   w <- gets fsWorld
   let f = getFrameNamed w fname
-  -- 1. get initial slot (if there is a slot, otherwise get a Nothing)
+  -- 3. get initial slot (if there is a slot, otherwise get a Nothing)
   let is = getSlotNamed f sname
-  -- 2. build resulting slot
+  -- 4. build resulting slot
   let s = combineSlots is $ Slot sname value defaultval ifneeded ifadded
-  -- 3. update frame with new slot
+  -- 5. update frame with new slot
   let f' = updateFrameSlot f s
-  -- 4. update world
+  -- 6. update world
   modify . first $ \w -> f' : filter (\f -> frameName f /= fname) w
 
 {-
