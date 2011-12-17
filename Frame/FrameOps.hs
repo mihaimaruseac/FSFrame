@@ -21,23 +21,19 @@ testput = execState (fput "zxcv" "mm" (Just (I 42)) Nothing Nothing Nothing) tes
 {-
 Evaluates a `FCREATE` command.
 -}
-fcreate :: String -> FrameType -> [String] -> State FSState ()
-fcreate name typ parents = do
-  -- 0. check conditions
+fcreate :: String -> FrameType -> String -> State FSState ()
+fcreate name typ parent = do
+  -- 1. check name validity
   checkValidName name
+  -- 2. check if frame exists
   w <- gets fsWorld
   let wnames = map frameName w
   checkFrameName name wnames
-  checkAllParentsKnown parents wnames
-  checkParentCount typ $ length parents
-  let ps = filter (\w -> frameName w `elem` parents) w
-  checkNoIndividualParent ps
-  -- 1. Build one frame
-  let f = Frame name typ [] [] ps
-  -- 2. Update parents' list of children
-  modify . first $ map (updateParent f ps)
-  -- 3. Add frame to world
-  modify . first $ (:) f
+  -- 3. check if parent exists
+  unless (parent `elem` wnames) $ error $ "Parent does not exist: " ++ parent
+  let p = head $ filter (\w -> frameName w == parent) w
+  -- 4. update world
+  modify . first $ addFrameToWorld name p typ
 
 {-
 Evaluates a `FPUT` command.
@@ -113,12 +109,14 @@ checkValidName s
   | otherwise = error $ "Invalid name <" ++ s ++ ">"
 
 {-
-Update the parents of a frame.
+Adds a frame to the world and updates the parent.
 -}
-updateParent :: Frame -> [Frame] -> Frame -> Frame
-updateParent s ps p
-  | p `elem` ps = let ss = frameChildren p in p { frameChildren = s : ss }
-  | otherwise = p
+addFrameToWorld :: String -> Frame -> FrameType -> [Frame] -> [Frame]
+addFrameToWorld n p t w = f : p' : w'
+  where
+    w' = filter (/= p) w
+    f = Frame n t [] [] p
+    p' = let sons = frameChildren p in p { frameChildren = f : sons }
 
 {-
 Checks for duplicate frame names.
@@ -128,31 +126,4 @@ checkFrameName name wnames
   | name `elem` wnames = error $ "Duplicate frame name " ++ name
   | otherwise = return ()
 
-{-
-Checks for frame of type `Individual` being parents of others.
--}
-checkNoIndividualParent :: [Frame] -> State FSState ()
-checkNoIndividualParent [] = return ()
-checkNoIndividualParent (f:fs)
-  | frameType f == Individual = error $ "Individuals cannot be parents: " ++ fn
-  | otherwise = checkNoIndividualParent fs
-  where
-    fn = frameName f
-
-{-
-A `Generic` frame can have any number of parents, including zero. An
-`Individual` frame must have at least one parent.
--}
-checkParentCount :: FrameType -> Int -> State FSState ()
-checkParentCount Individual 0 = error "Individuals must have at least one parent."
-checkParentCount _ _ = return ()
-
-{-
-All declared parents for a frame must exist.
--}
-checkAllParentsKnown :: [String] -> [String] -> State FSState ()
-checkAllParentsKnown [] wnames = return ()
-checkAllParentsKnown (n:ns) wnames
-  | n `elem` wnames = checkAllParentsKnown ns wnames
-  | otherwise = error $ "Parent does not exist: " ++ n
 

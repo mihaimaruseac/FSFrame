@@ -11,7 +11,7 @@ application. It also contains useful functions for working with those types
 Commands to manipulate the entire frame system (frames or preferences).
 -}
 data FSCmd
-  = FCREATE String FrameType [Frame] -- FCREATE name type [parents]
+  = FCREATE String FrameType Frame -- FCREATE name type parent
   | FGET String String -- FGET frame_name slot_name
   | FPUT String String Obj -- FPUT frame_name slot_name value
   | FSETPARAMS ParamSetting Bool -- FSETPARAMS paramtype value
@@ -36,11 +36,12 @@ preferences.
 type FSState = (World, Pref)
 
 {-
-This is the initial state: an empty world, defaults and actions are enabled,
-default values have higher precedence and we are searching in Z order.
+This is the initial state: a world containing only the root frame, defaults
+and actions are enabled, default values have higher precedence and we are
+searching in Z order.
 -}
 initialState :: FSState
-initialState = ([], Pref True True True True)
+initialState = ([rootFrame], Pref True True True True)
 
 {-
 A world consists of a list of frames. The relationships between them is stored
@@ -53,8 +54,8 @@ A frame has a name, a type and a list of slots. It also contains a list of
 other frames, represented as children of this node when the entire hierarchy
 is represented as a DAG. The exact signification of the `frameChildren` list
 depends on the `frameType` attribute (it is the inverse of `FrameRel` type.
-Also, the inverse relationship is presented via the `frameParents` list
-(multiple inheritance is allowed). Operations to work with a frame are
+Also, the inverse relationship is presented via the `frameParent` attribute
+(multiple inheritance is not allowed). Operations to work with a frame are
 included in `FrameOps.hs`
 -}
 data Frame = Frame
@@ -62,8 +63,14 @@ data Frame = Frame
   , frameType :: FrameType
   , frameSlots :: [Slot]
   , frameChildren :: [Frame]
-  , frameParents :: [Frame]
-  } deriving (Eq, Read)
+  , frameParent :: Frame
+  } deriving (Read)
+
+{-
+The root frame. Cannot be modified or used.
+-}
+rootFrame :: Frame
+rootFrame = Frame "ROOT" Generic [] [] rootFrame
 
 {-
 A frame can be of two kinds: generic or individual.
