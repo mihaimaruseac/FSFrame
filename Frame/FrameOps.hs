@@ -17,6 +17,7 @@ import Frame.Types
 import Debug.Trace
 test =
   execState (fcreate "Roman" Individual "Truck") $
+  execState (fcreate "Logan" Individual "GermanCar") $
   execState (fcreate "BMW" Individual "GermanCar") $
   execState (fcreate "Toyota" Individual "JapaneseCar") $
   execState (fcreate "GermanCar" Generic "Car") $
