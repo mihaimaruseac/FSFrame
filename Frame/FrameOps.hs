@@ -63,6 +63,7 @@ fput fname sname value defaultval ifneeded ifadded = do
   let f' = updateFrameSlot f s
   -- 6. update world
   modify . first $ \w -> f' : filter (\f -> frameName f /= fname) w
+  -- 7. search and execute `if-added` actions TODO
 
 {-
 Updates one frame's slot with the given one. Removes any existing slot with
