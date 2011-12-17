@@ -37,6 +37,71 @@ fcreate name typ parents = do
   modify . first $ (:) f
 
 {-
+Evaluates a `FPUT` command.
+-}
+fput :: String -> String -> Maybe Obj -> Maybe Obj -> Maybe Action ->
+  Maybe Action -> State FSState ()
+fput fname sname value defaultval ifneeded ifadded = do
+  -- 0. check conditions
+  checkValidName sname -- fname should exist, thus not checking
+  w <- gets fsWorld
+  let f = getFrameNamed w fname
+  -- 1. get initial slot (if there is a slot, otherwise get a Nothing)
+  let is = getSlotNamed f sname
+  -- 2. build resulting slot
+  let s = combineSlots is $ Slot sname value defaultval ifneeded ifadded
+  -- 3. update frame with new slot
+  let f' = updateFrameSlot f s
+  -- 4. update world
+  modify . first $ \w -> f' : (filter (\f -> frameName f /= fname) w)
+
+{-
+Updates one frame's slot with the given one. Removes any existing slot with
+the same name and cons the given slot to the list of slots.
+-}
+updateFrameSlot :: Frame -> Slot -> Frame
+updateFrameSlot f s = f { frameSlots = ss }
+  where
+    n = slotName s
+    ss = s : (filter (\x -> slotName x /= n) $ frameSlots f)
+
+{-
+Composes two slots with the same name (checked by the caller). The first
+argument can be a Nothing in which case copy the second one. Otherwise combine
+both values, keeping the non-Nothing ones.
+-}
+combineSlots :: Maybe Slot -> Slot -> Slot
+combineSlots Nothing s = s
+combineSlots (Just s) s' = Slot name value defval ifn ifa
+  where
+    name = slotName s -- same as slotName s'
+    value = let v = slotValue s' in if v == Nothing then slotValue s else v
+    defval = let v = slotDefault s' in if v == Nothing then slotDefault s else v
+    ifn = let v = slotIfNeeded s' in if v == Nothing then slotIfNeeded s else v
+    ifa = let v = slotIfAdded s' in if v == Nothing then slotIfAdded s else v
+
+{-
+Gets a frame given its name.
+-}
+getFrameNamed :: [Frame] -> String -> Frame
+getFrameNamed [] fname = error $ "No frame named " ++ fname
+getFrameNamed (f:fs) fname
+  | frameName f == fname = f
+  | otherwise = getFrameNamed fs fname
+
+{-
+Gets a slot from a given frame, given by its name. Doesn't return an error
+since it is called as an auxiliary function where no errors must be thrown.
+-}
+getSlotNamed :: Frame -> String -> Maybe Slot
+getSlotNamed f sname
+  = let this_slot = filter (\s -> slotName s == sname) $ frameSlots f in
+    case this_slot of
+      [] -> Nothing
+      [s] -> Just s
+      _ -> error $ "The impossible happened in getSlotNamed."
+
+{-
 Checks if a name is valid.
 -}
 checkValidName :: String -> State FSState ()
