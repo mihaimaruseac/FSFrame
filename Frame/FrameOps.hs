@@ -15,7 +15,15 @@ import Data.Maybe
 import Frame.Types
 
 import Debug.Trace
-test = execState (fcreate "zxcv" Individual ["asdf"]) $ execState (fcreate "qwer" Individual ["asdf"]) $ execState (fcreate "asdf" Generic []) initialState
+test =
+  execState (fcreate "Roman" Individual "Truck") $
+  execState (fcreate "BMW" Individual "GermanCar") $
+  execState (fcreate "Toyota" Individual "JapaneseCar") $
+  execState (fcreate "GermanCar" Generic "Car") $
+  execState (fcreate "JapaneseCar" Generic "Car") $
+  execState (fcreate "Truck" Generic "Vehicle") $
+  execState (fcreate "Car" Generic "Vehicle") $
+  execState (fcreate "Vehicle" Generic "ROOT") initialState
 testput = execState (fput "zxcv" "mm" (Just (I 42)) Nothing Nothing Nothing) test
 
 {-
