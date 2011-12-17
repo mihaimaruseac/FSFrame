@@ -11,11 +11,22 @@ application. It also contains useful functions for working with those types
 Commands to manipulate the entire frame system (frames or preferences).
 -}
 data FSCmd
-  = FCREATE String FrameType Frame -- FCREATE name type parent
+  = FCREATE String String FrameType -- FCREATE frame_name parent_name type
   | FGET String String -- FGET frame_name slot_name
-  | FPUT String String Obj -- FPUT frame_name slot_name value
+  | FPUT String String [PutType Obj] -- FPUT frame_name slot_name [ptype value]
   | FSETPARAMS ParamSetting Bool -- FSETPARAMS paramtype value
   | FGETPARAMS ParamSetting -- FGETPARAMS paramtype
+  deriving (Eq, Show, Read)
+
+{-
+Put type. Basically, each FPUT action only sets up a single slot field. Select
+this field via the `PutType` option.
+-}
+data PutType a
+  = PutV a -- fill in value for this slot
+  | PutD a -- fill in default value for this slot
+  | PutN a -- fill in `if-needed` action for this slot
+  | PutA a -- fill in `if-added` action for this slot
   deriving (Eq, Show, Read)
 
 {-
