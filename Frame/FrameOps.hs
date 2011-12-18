@@ -25,7 +25,7 @@ test =
   execState (fcreate "JapaneseCar" Generic "Car") $
   execState (fcreate "Truck" Generic "Vehicle") $
   execState (fcreate "Car" Generic "Vehicle") $
-  execState (fcreate "Vehicle" Generic "ROOT") initialState
+  execState (fcreate "Vehicle" Generic gROOT) initialState
 testput =
   execState (fput "Vehicle" "fuelConsumption" (Just (R 4.2)) Nothing Nothing Nothing) $
   execState (fput "Vehicle" "rom_price" Nothing Nothing (Just "-1") Nothing) $ -- TODO: implement proper action
@@ -60,6 +60,7 @@ Evaluates a `FPUT` command.
 fput :: String -> String -> Maybe Obj -> Maybe Obj -> Maybe Action ->
   Maybe Action -> State FSState ()
 fput fname sname value defaultval ifneeded ifadded = do
+  when (fname == gROOT) $ error "Root frame cannot be modified."
   -- 1. check validity of names
   checkValidName sname -- fname should exist, thus not checking
   -- 2. get frame to modify
@@ -80,7 +81,8 @@ Evaluates a `FGET` command.
 -}
 fget :: String -> String -> State FSState Obj
 fget fname sname = do
-  -- 1. get preferences
+  when (fname == gROOT) $ error "Root frame has no attributes."
+  -- 1. get preferences and starting frame
   prefs <- gets fsPrefs
   -- 2. start search and get basic value
   o <- if prefSearchTypeIsZ prefs

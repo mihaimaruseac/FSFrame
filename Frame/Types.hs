@@ -78,10 +78,12 @@ data Frame = Frame
   } deriving (Read)
 
 {-
-The root frame. Cannot be modified or used.
+The root frame. Cannot be modified or used. Name is defined as a global
+constant here.
 -}
+gROOT = "ROOT"
 rootFrame :: Frame
-rootFrame = Frame "ROOT" Generic [] [] rootFrame
+rootFrame = Frame gROOT Generic [] [] rootFrame
 
 {-
 A frame can be of two kinds: generic or individual.
