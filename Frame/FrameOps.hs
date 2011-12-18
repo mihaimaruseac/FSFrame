@@ -1,3 +1,5 @@
+{-# Language BangPatterns #-}
+
 module Frame.FrameOps
 where
 
@@ -11,10 +13,34 @@ import Control.Monad
 import Control.Monad.Trans.State.Strict --(modify, gets, State)
 import Data.Char
 import Data.Maybe
+import Data.Tuple
 
 --import Frame.Action
 import Frame.Preferences
 import Frame.Types
+
+import Debug.Trace
+{-
+Executes an user command. Basically, call helper functions to do the actual
+work for us.
+-}
+executeCmd :: FSState -> UserCmd -> (FSState, Maybe Obj)
+executeCmd _ QUIT = error "QUIT is reserved for userspace."
+executeCmd _ (RUN _) = error "RUN is reserved for userspace."
+executeCmd s (EXEC fscmd) = let x = (execState (execUserCmd fscmd) s, Nothing) in trace (show fscmd) x
+executeCmd s (EVAL expr) = evaluateExpr s expr--swap $ trace "Done" $! runState (evaluateExpr expr) s
+
+{-
+Evaluates an expression. Can have state effects.
+-}
+evaluateExpr :: FSState -> Expr -> (FSState, Maybe Obj)
+evaluateExpr !s (DOT fname sname) = (s, Just o)
+  where
+    o = evalState (evalUserCmd (FGET fname sname)) s
+  {-
+  error "fail"
+  return $ trace ("Done" ++ show o) $ Just o
+--evaluateExpr _ = trace "Fail" undefined -}
 
 {-
 Executes a user command and returns a value. To be called only for FGET
@@ -22,7 +48,9 @@ commands. If called for an FGETPARAMS command, the returned value of
 `fgetparams` is boxed into a `Obj` type of type `B`.
 -}
 evalUserCmd :: FSCmd -> State FSState Obj
-evalUserCmd (FGET fname sname) = fget fname sname
+evalUserCmd (FGET fname sname) = do
+  o <- fget fname sname
+  trace (show o) $ return o
 evalUserCmd cmd = error $ "Command `" ++ show cmd ++ "` cannot return a value."
 
 {-
