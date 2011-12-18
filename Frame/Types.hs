@@ -28,6 +28,7 @@ an `Obj` value in the end.
 data Expr
   = DOT String String -- frame.slot or FGET frame slot
   | PREF ParamSetting -- return a preference
+  | OBJ Obj -- a real `Obj` to be returned (or used in complex expressions)
   deriving (Eq, Show, Read)
 
 {-

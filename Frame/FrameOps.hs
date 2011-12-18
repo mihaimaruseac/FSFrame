@@ -35,6 +35,7 @@ Evaluates an expression. Can have state effects.
 evaluateExpr :: Expr -> State FSState (Maybe Obj)
 evaluateExpr (DOT fname sname) = fget fname sname >>= return . Just
 evaluateExpr (PREF pname) = fgetparams pname >>= return . Just . B
+evaluateExpr (OBJ o) = return $ Just o
 
 {-
 Executes a user command having side effects (called via EXEC).
