@@ -36,6 +36,9 @@ testput =
   execState (fput "GermanCar" "country" (Just (S "Germany")) Nothing Nothing Nothing) $
   execState (fput "JapaneseCar" "country" (Just (S "Japan")) Nothing Nothing Nothing) $
   execState (fput "Vehicle" "country" Nothing (Just (S "?")) Nothing Nothing) test
+testget =
+  evalState (fget "Toyota" "country") $
+  execState (fput "Car" "country" Nothing Nothing (Just "-2") Nothing) testput
 
 {-
 Evaluates a `FCREATE` command.
