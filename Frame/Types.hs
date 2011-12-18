@@ -7,13 +7,16 @@ application. It also contains useful functions for working with those types
 (mainly getting values from them or extending them with useful information).
 -}
 
+import Control.Arrow
+import Control.Monad.Trans.State.Strict
+
 {-
 Commands to manipulate the entire frame system (frames or preferences).
 -}
 data FSCmd
   = FCREATE String String FrameType -- FCREATE frame_name parent_name type
   | FGET String String -- FGET frame_name slot_name
-  | FPUT String String [PutType] -- FPUT frame_name slot_name [ptype]
+  | FPUT String String PutType -- FPUT frame_name slot_name ptype
   | FSETPARAMS ParamSetting Bool -- FSETPARAMS paramtype value
   | FGETPARAMS ParamSetting -- FGETPARAMS paramtype
   deriving (Eq, Show, Read)
@@ -45,6 +48,14 @@ The internal state of the frame system consists of all frames and the user
 preferences.
 -}
 type FSState = (World, Pref)
+
+{-
+Modifiers of state.
+-}
+modifyWorld :: (World -> World) -> State FSState ()
+modifyWorld = modify . first
+modifyPref :: (Pref -> Pref) -> State FSState ()
+modifyPref = modify . second
 
 {-
 This is the initial state: a world containing only the root frame, defaults

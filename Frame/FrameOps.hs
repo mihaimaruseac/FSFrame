@@ -55,7 +55,7 @@ fcreate name typ parent = do
   unless (parent `elem` wnames) $ error $ "Parent `" ++ parent ++ "` does not exist."
   let p = head $ filter (\w -> frameName w == parent) w
   -- 4. update world
-  modify . first $ addFrameToWorld name p typ
+  modifyWorld $ addFrameToWorld name p typ
 
 {-
 Evaluates a `FPUT` command.
@@ -76,7 +76,7 @@ fput fname sname value defaultval ifneeded ifadded = do
   -- 5. update frame with new slot
   let f' = updateFrameSlot f s
   -- 6. update world
-  modify . first $ \w -> f' : filter (\f -> frameName f /= fname) w
+  modifyWorld $ \w -> f' : filter (\f -> frameName f /= fname) w
   -- 7. search and execute `if-added` actions TODO
 
 {-
@@ -105,8 +105,7 @@ Retrieves an attribute using the Z order.
 fgetZ :: World -> Pref -> Frame -> String -> State FSState (Maybe Obj)
 fgetZ w pref frame sname
   | frame == rootFrame = return Nothing
-  | otherwise = trace ("\n\t> " ++ show frame ++ " / " ++ sname) $
-                maybe (fgetZ w pref (getParentFrame w frame) sname)
+  | otherwise = maybe (fgetZ w pref (getParentFrame w frame) sname)
                 (getValueZFromSlot w pref frame) $ getSlotNamed frame sname
 
 {-
