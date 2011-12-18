@@ -26,6 +26,7 @@ Userspace commands. Can be issued by an user or by a script / action.
 data UserCmd
   = QUIT -- leave application, only for userspace
   | RUN String -- loads and executes a batch file, only for userspace
+  | DUMP -- prints the entire world, only for userspace and only in TUI
   | EXEC FSCmd -- execute a FSCmd, only for it's side effect
   | EVAL Expr -- evaluates an expression
   deriving (Eq, Show, Read)
@@ -109,11 +110,11 @@ Also, the inverse relationship is presented via the `frameParent` attribute
 included in `FrameOps.hs`
 -}
 data Frame = Frame
-  { frameName :: !String
-  , frameType :: !FrameType
-  , frameSlots :: ![Slot]
-  , frameChildren :: ![String]
-  , frameParent :: !String
+  { frameName :: String
+  , frameType :: FrameType
+  , frameSlots :: [Slot]
+  , frameChildren :: [String]
+  , frameParent :: String
   } deriving (Read)
 
 {-
@@ -143,7 +144,7 @@ to be executed when this slot (or a similar slot higher in the hierarchy) gets
 updated.
 -}
 data Slot = Slot
-  { slotName :: !String
+  { slotName :: String
   , slotValue :: Maybe Obj
   , slotDefault :: Maybe Obj
   , slotIfNeeded :: Maybe Action
@@ -155,12 +156,12 @@ An object can be everything in our universe: an integer, a float, a string, an
 action or another frame.
 -}
 data Obj
-  = I !Integer
-  | R !Double
-  | S !String
-  | B !Bool
-  | A !Action
-  | F !String -- A Frame but keep only its name
+  = I Integer
+  | R Double
+  | S String
+  | B Bool
+  | A Action
+  | F String -- A Frame but keep only its name
   deriving (Eq, Show, Read)
 
 {-
@@ -176,13 +177,13 @@ It can be changed when needed. Functions for setting and temporarily changing
 the preferences are defined in `Preferences.hs` module.
 -}
 data Pref = Pref
-  { prefDefaultsEnabled :: !Bool
+  { prefDefaultsEnabled :: Bool
   -- if True, use default values when searching for missing values
-  , prefActionsEnabled :: !Bool
+  , prefActionsEnabled :: Bool
   -- if False, no action will be executed until it is switched to True
-  , prefDefaultThenNeeded :: !Bool
+  , prefDefaultThenNeeded :: Bool
   -- if True, default values have higher priority than if-needed actions
-  , prefSearchTypeIsZ :: !Bool
+  , prefSearchTypeIsZ :: Bool
   -- if True, search is done in Z order (see `SearchType` below)
   -- TODO: this can be changed
   } deriving (Eq, Show, Read)

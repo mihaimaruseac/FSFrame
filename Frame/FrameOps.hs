@@ -25,6 +25,7 @@ work for us.
 executeCmd :: FSState -> UserCmd -> (FSState, Maybe Obj)
 executeCmd _ QUIT = error "QUIT is reserved for userspace."
 executeCmd _ (RUN _) = error "RUN is reserved for userspace."
+executeCmd _ DUMP = error "DUMP is reserved for userspace."
 executeCmd s (EXEC fscmd) = (execState (execUserCmd fscmd) s, Nothing)
 executeCmd s (EVAL expr) = swap $ runState (evaluateExpr expr) s
 

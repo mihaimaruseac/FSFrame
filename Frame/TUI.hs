@@ -53,8 +53,9 @@ mainLoop :: FSState -> IO ()
 mainLoop !s = do
   userCmd <- readLn
   case userCmd of
-    QUIT -> trace (show s) exitSuccess
+    QUIT -> exitSuccess
     RUN fname -> batchRun fname s >>= mainLoop
+    DUMP -> print s >> mainLoop s
     _ -> do
       let (s', v) = executeCmd s userCmd
       when (isJust v) $ print v
