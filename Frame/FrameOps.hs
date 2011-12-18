@@ -91,8 +91,8 @@ fget fname sname = do
   let f = getFrameNamed w fname
   -- 2. start search and get basic value
   o <- if prefSearchTypeIsZ prefs
-         then fgetZ prefs f sname
-         else fgetN prefs f sname
+         then fgetZ w prefs f sname
+         else fgetN w prefs f sname
   -- 3. extract value and execute action if returned
   when (isNothing o) $ error $ "Slot `" ++ sname ++ "` not found."
   case fromJust o of
@@ -102,21 +102,22 @@ fget fname sname = do
 {-
 Retrieves an attribute using the Z order.
 -}
-fgetZ :: Pref -> Frame -> String -> State FSState (Maybe Obj)
-fgetZ pref frame sname
+fgetZ :: World -> Pref -> Frame -> String -> State FSState (Maybe Obj)
+fgetZ w pref frame sname
   | frame == rootFrame = return Nothing
-  | otherwise = maybe (fgetZ pref (frameParent frame) sname)
-                (getValueZFromSlot pref frame) $ getSlotNamed frame sname
+  | otherwise = trace ("\n\t> " ++ show frame ++ " / " ++ sname) $
+                maybe (fgetZ w pref (getParentFrame w frame) sname)
+                (getValueZFromSlot w pref frame) $ getSlotNamed frame sname
 
 {-
 Retrieves a value from a slot in Z order. Calls fgetZ for parent if value is
 not found (or it exists but it is disabled).
 -}
-getValueZFromSlot :: Pref -> Frame -> Slot -> State FSState (Maybe Obj)
-getValueZFromSlot p f s = maybe search retfct $ slotValue s
+getValueZFromSlot :: World -> Pref -> Frame -> Slot -> State FSState (Maybe Obj)
+getValueZFromSlot w p f s = maybe search retfct $ slotValue s
   where
     retfct = return . Just
-    search_parent = fgetZ p (frameParent f) (slotName s)
+    search_parent = fgetZ w p (getParentFrame w f) (slotName s)
     search = if prefDefaultThenNeeded p then sDNP else sNDP
     sDNP = maybe sNP retfct $ getSlotDefault p s
     sNDP = maybe sDP act_result $ getSlotIfNeeded p s
@@ -127,7 +128,7 @@ getValueZFromSlot p f s = maybe search retfct $ slotValue s
 {-
 Retrieves an attirbute using the N order.
 -}
-fgetN :: Pref -> Frame -> String -> State FSState (Maybe Obj)
+fgetN :: World -> Pref -> Frame -> String -> State FSState (Maybe Obj)
 fgetN = undefined
 
 {-
@@ -165,6 +166,12 @@ getFrameNamed (f:fs) fname
   | otherwise = getFrameNamed fs fname
 
 {-
+Returns the parent of a frame.
+-}
+getParentFrame :: [Frame] -> Frame -> Frame
+getParentFrame w f = getFrameNamed w (frameParent f)
+
+{-
 Gets a slot from a given frame, given by its name. Doesn't return an error
 since it is called as an auxiliary function where no errors must be thrown.
 -}
@@ -193,8 +200,8 @@ addFrameToWorld :: String -> Frame -> FrameType -> [Frame] -> [Frame]
 addFrameToWorld n p t w = f : p' : w'
   where
     w' = filter (/= p) w
-    f = Frame n t [] [] p
-    p' = let sons = frameChildren p in p { frameChildren = f : sons }
+    f = Frame n t [] [] (frameName p)
+    p' = let sons = frameChildren p in p { frameChildren = n : sons }
 
 {-
 Checks for duplicate frame names.

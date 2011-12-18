@@ -73,8 +73,8 @@ data Frame = Frame
   { frameName :: String
   , frameType :: FrameType
   , frameSlots :: [Slot]
-  , frameChildren :: [Frame]
-  , frameParent :: Frame
+  , frameChildren :: [String]
+  , frameParent :: String
   } deriving (Read)
 
 {-
@@ -83,7 +83,7 @@ constant here.
 -}
 gROOT = "ROOT"
 rootFrame :: Frame
-rootFrame = Frame gROOT Generic [] [] rootFrame
+rootFrame = Frame gROOT Generic [] [] gROOT
 
 {-
 A frame can be of two kinds: generic or individual.
@@ -161,7 +161,7 @@ Instance of class `Show` for `Frame`.
 -}
 instance Show Frame where
   show (Frame name typ slots ch _) = show typ ++ ":" ++ name
-    ++ show (map frameName ch) ++ show slots
+    ++ show ch ++ show slots
 
 {-
 Instance of class `Eq` for `Frame`.
