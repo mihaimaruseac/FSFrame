@@ -173,7 +173,5 @@ Checks for duplicate frame names.
 -}
 checkFrameName :: String -> [String] -> State FSState ()
 checkFrameName name wnames
-  | name `elem` wnames = error $ "Duplicate frame name " ++ name
-  | otherwise = return ()
-
+  = when (name `elem` wnames) $ error $ "Duplicate frame name " ++ name
 
