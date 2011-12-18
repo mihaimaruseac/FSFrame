@@ -12,8 +12,38 @@ import Control.Monad.Trans.State.Strict --(modify, gets, State)
 import Data.Char
 import Data.Maybe
 
-import Frame.Action
+--import Frame.Action
+import Frame.Preferences
 import Frame.Types
+
+{-
+Executes a user command and returns a value. To be called only for FGET
+commands. If called for an FGETPARAMS command, the returned value of
+`fgetparams` is boxed into a `Obj` type of type `B`.
+-}
+evalUserCmd :: FSCmd -> State FSState Obj
+evalUserCmd (FGET fname sname) = fget fname sname
+evalUserCmd cmd = error $ "Command `" ++ show cmd ++ "` cannot return a value."
+
+{-
+Executes a user command. To be called only for commands not requiring a value
+to be returned. Otherwise, the returned value is ignored.
+-}
+execUserCmd :: FSCmd -> State FSState ()
+execUserCmd (FCREATE fname pname typ) = fcreate fname typ pname
+execUserCmd (FGET fname sname) = fget fname sname >> return ()
+execUserCmd (FPUT fname sname ptype) = doPut fname sname ptype
+execUserCmd (FSETPARAMS param value) = fsetparams param value
+execUserCmd (FGETPARAMS param) = fgetparams param >> return ()
+
+{-
+Helper function to put a slot.
+-}
+doPut :: String -> String -> PutType -> State FSState ()
+doPut f s (PutV o) = fput f s (Just o) Nothing Nothing Nothing
+doPut f s (PutD o) = fput f s Nothing (Just o) Nothing Nothing
+doPut f s (PutN o) = fput f s Nothing Nothing (Just o) Nothing
+doPut f s (PutA o) = fput f s Nothing Nothing Nothing (Just o)
 
 {-
 Evaluates a `FCREATE` command.
@@ -73,6 +103,14 @@ fget fname sname = do
   case fromJust o of
     A a -> executeAction prefs a
     x -> return x
+
+{-
+Execute a simple action. TODO: define it.
+-}
+executeAction :: Pref -> Action -> State FSState Obj
+executeAction p a = do
+  unless (prefActionsEnabled p) $ error "Action is required but disabled."
+  error "Action is required but not implemented"
 
 {-
 Retrieves an attribute using the Z order.

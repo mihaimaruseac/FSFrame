@@ -7,9 +7,9 @@ use functions defined here. Any GUI functionality will be implemented on top
 of this module.
 -}
 
-import Frame.Action
+--import Frame.Action
 import Frame.FrameOps
-import Frame.Preferences
+--import Frame.Preferences
 import Frame.Types
 
 import Control.Monad.Trans.State.Strict --(modify, gets, State)
@@ -39,32 +39,5 @@ testget =
   evalState (fget "Car" "country") $
   execState (fput "Car" "country" Nothing Nothing (Just "-2") Nothing) testput
 
-{-
-Executes a user command and returns a value. To be called only for FGET
-commands. If called for an FGETPARAMS command, the returned value of
-`fgetparams` is boxed into a `Obj` type of type `B`.
--}
-evalUserCmd :: FSCmd -> State FSState Obj
-evalUserCmd (FGET fname sname) = fget fname sname
-evalUserCmd cmd = error $ "Command `" ++ show cmd ++ "` cannot return a value."
-
-{-
-Executes a user command. To be called only for commands not requiring a value
-to be returned. Otherwise, the returned value is ignored.
--}
-execUserCmd :: FSCmd -> State FSState ()
-execUserCmd (FCREATE fname pname typ) = fcreate fname typ pname
-execUserCmd (FGET fname sname) = fget fname sname >> return ()
-execUserCmd (FPUT fname sname ptype) = doPut fname sname ptype
-execUserCmd (FSETPARAMS param value) = fsetparams param value
-execUserCmd (FGETPARAMS param) = fgetparams param >> return ()
-
-{-
-Helper function to put a slot.
--}
-doPut :: String -> String -> PutType -> State FSState ()
-doPut f s (PutV o) = fput f s (Just o) Nothing Nothing Nothing
-doPut f s (PutD o) = fput f s Nothing (Just o) Nothing Nothing
-doPut f s (PutN o) = fput f s Nothing Nothing (Just o) Nothing
-doPut f s (PutA o) = fput f s Nothing Nothing Nothing (Just o)
+mainTUI = print "ok"
 

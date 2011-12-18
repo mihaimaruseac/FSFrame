@@ -7,11 +7,11 @@ contains all functions needed to build the GUI and interact with it but it
 exports only the main building function to the outside.
 -}
 
-import Frame.Types
+import Frame.TUI
 
 {-
 The main GUI building function.
 -}
 frameGUI :: IO ()
-frameGUI = print "ok"
+frameGUI = mainTUI --print "ok"
 
