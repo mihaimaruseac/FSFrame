@@ -95,11 +95,13 @@ fget fname sname = do
 {-
 Retrieves an attirbute using the Z order.
 -}
+fgetZ :: String -> String -> State FSState (Maybe Obj)
 fgetZ = undefined
 
 {-
 Retrieves an attirbute using the N order.
 -}
+fgetN :: String -> String -> State FSState (Maybe Obj)
 fgetN = undefined
 
 {-
