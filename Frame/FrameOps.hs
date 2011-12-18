@@ -88,30 +88,43 @@ fget fname sname = do
   let f = getFrameNamed w fname
   -- 2. start search and get basic value
   o <- if prefSearchTypeIsZ prefs
-         then fgetZ f sname
-         else fgetN f sname
+         then fgetZ prefs f sname
+         else fgetN prefs f sname
   -- 3. extract value and execute action if returned
   when (isNothing o) $ error $ "Slot `" ++ sname ++ "` not found."
   case fromJust o of
-    A a -> executeAction a
+    A a -> executeAction prefs a
     x -> return x
 
 {-
-Retrieves an attirbute using the Z order.
+Retrieves an attribute using the Z order.
 -}
-fgetZ :: Frame -> String -> State FSState (Maybe Obj)
-fgetZ frame sname
+fgetZ :: Pref -> Frame -> String -> State FSState (Maybe Obj)
+fgetZ pref frame sname
   | frame == rootFrame = return Nothing
-  | otherwise = do
-    let slot = getSlotNamed frame sname
-    if isNothing slot
-      then fgetZ (frameParent frame) sname -- go to parent
-      else return undefined
+  | otherwise = maybe (fgetZ pref (frameParent frame) sname)
+                (getValueZFromSlot pref frame) $ getSlotNamed frame sname
+
+{-
+Retrieves a value from a slot in Z order. Calls fgetZ for parent if value is
+not found (or it exists but it is disabled).
+-}
+getValueZFromSlot :: Pref -> Frame -> Slot -> State FSState (Maybe Obj)
+getValueZFromSlot p f s = maybe search retfct $ slotValue s
+  where
+    retfct = return . Just
+    search_parent = fgetZ p (frameParent f) (slotName s)
+    search = if prefDefaultThenNeeded p then sDNP else sNDP
+    sDNP = maybe sNP retfct $ getSlotDefault p s
+    sNDP = maybe sDP act_result $ getSlotIfNeeded p s
+    sNP = maybe search_parent act_result $ getSlotIfNeeded p s
+    sDP = maybe search_parent retfct $ getSlotDefault p s
+    act_result a = executeAction p a >>= retfct
 
 {-
 Retrieves an attirbute using the N order.
 -}
-fgetN :: Frame -> String -> State FSState (Maybe Obj)
+fgetN :: Pref -> Frame -> String -> State FSState (Maybe Obj)
 fgetN = undefined
 
 {-
