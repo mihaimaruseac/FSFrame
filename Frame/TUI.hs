@@ -58,7 +58,7 @@ mainLoop !s = do
     DUMP -> print s >> mainLoop s
     _ -> do
       let (s', v) = executeCmd s userCmd
-      when (isJust v) $ print v
+      when (isJust v) $ print $ fromJust v
       mainLoop s'
 
 batchRun :: String -> FSState -> IO FSState

@@ -11,16 +11,6 @@ import Control.Arrow
 import Control.Monad.Trans.State.Strict
 
 {-
-Local store used for variables.
--}
-type Var = (String, Obj)
-type VarStore = [Var]
-
-{-
-Utility function to get the most recent binding of a variable.
--}
-
-{-
 Userspace commands. Can be issued by an user or by a script / action.
 -}
 data UserCmd
@@ -37,6 +27,7 @@ an `Obj` value in the end.
 -}
 data Expr
   = DOT String String -- frame.slot or FGET frame slot
+  | PREF ParamSetting -- return a preference
   deriving (Eq, Show, Read)
 
 {-

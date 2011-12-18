@@ -33,17 +33,8 @@ executeCmd s (EVAL expr) = swap $ runState (evaluateExpr expr) s
 Evaluates an expression. Can have state effects.
 -}
 evaluateExpr :: Expr -> State FSState (Maybe Obj)
-evaluateExpr (DOT fname sname) = evalUserCmd (FGET fname sname) >>= return . Just
-evaluateExpr _ = trace "Fail" undefined
-
-{-
-Executes a user command and returns a value. To be called only for FGET
-commands. If called for an FGETPARAMS command, the returned value of
-`fgetparams` is boxed into a `Obj` type of type `B`.
--}
-evalUserCmd :: FSCmd -> State FSState Obj
-evalUserCmd (FGET fname sname) = fget fname sname
-evalUserCmd cmd = error $ "Command `" ++ show cmd ++ "` cannot return a value."
+evaluateExpr (DOT fname sname) = fget fname sname >>= return . Just
+evaluateExpr (PREF pname) = fgetparams pname >>= return . Just . B
 
 {-
 Executes a user command. To be called only for commands not requiring a value
