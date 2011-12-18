@@ -37,7 +37,7 @@ testput =
   execState (fput "JapaneseCar" "country" (Just (S "Japan")) Nothing Nothing Nothing) $
   execState (fput "Vehicle" "country" Nothing (Just (S "?")) Nothing Nothing) test
 testget =
-  evalState (fget "Truck" "country") $
+  evalState (fget "Car" "country") $
   execState (fput "Car" "country" Nothing Nothing (Just "-2") Nothing) testput
 
 {-
@@ -92,7 +92,7 @@ fget fname sname = do
   -- 2. start search and get basic value
   o <- if prefSearchTypeIsZ prefs
          then fgetZ w prefs f sname
-         else fgetN w prefs f sname
+         else fgetN w prefs fname sname
   -- 3. extract value and execute action if returned
   when (isNothing o) $ error $ "Slot `" ++ sname ++ "` not found."
   case fromJust o of
@@ -117,19 +117,52 @@ getValueZFromSlot :: World -> Pref -> Frame -> Slot -> State FSState (Maybe Obj)
 getValueZFromSlot w p f s = maybe search retfct $ slotValue s
   where
     retfct = return . Just
+    act_result a = executeAction p a >>= retfct
     search_parent = fgetZ w p (getParentFrame w f) (slotName s)
     search = if prefDefaultThenNeeded p then sDNP else sNDP
     sDNP = maybe sNP retfct $ getSlotDefault p s
     sNDP = maybe sDP act_result $ getSlotIfNeeded p s
     sNP = maybe search_parent act_result $ getSlotIfNeeded p s
     sDP = maybe search_parent retfct $ getSlotDefault p s
-    act_result a = executeAction p a >>= retfct
 
 {-
-Retrieves an attirbute using the N order.
+Retrieves an attribute using the N order.
 -}
-fgetN :: World -> Pref -> Frame -> String -> State FSState (Maybe Obj)
-fgetN = undefined
+fgetN :: World -> Pref -> String -> String -> State FSState (Maybe Obj)
+fgetN w p f s
+  | f == gROOT = return Nothing
+  | otherwise = startNSearch w p (getFrameNamed w f) s
+
+{-
+Starts a N search. Effectively launches the searches to the root of the tree
+until an answer is found.
+-}
+startNSearch :: World -> Pref -> Frame -> String -> State FSState (Maybe Obj)
+startNSearch w p f s = if prefDefaultThenNeeded p then sVDN else sVND
+  where
+    retfct = return . Just
+    act_result a = executeAction p a >>= retfct
+    sVDN = maybe stDN retfct $ doNSearch slotValue w f s
+    sVND = maybe stND retfct $ doNSearch slotValue w f s
+    stDN = if prefDefaultsEnabled p then sDN else stN
+    stND = if prefActionsEnabled p then sND else stD
+    stN = if prefActionsEnabled p then sN else return Nothing
+    stD = if prefDefaultsEnabled p then sD else return Nothing
+    sDN = maybe sN retfct $ doNSearch slotDefault w f s
+    sND = maybe sD act_result $ doNSearch slotIfNeeded w f s
+    sN = maybe (return Nothing) act_result $ doNSearch slotIfNeeded w f s
+    sD = return $ doNSearch slotDefault w f s
+
+{-
+Search until a value is found or root is reached. Use a selector to look at
+values.
+-}
+doNSearch :: (Slot -> Maybe a) -> World -> Frame -> String -> Maybe a
+doNSearch sel w f sn
+  | f == rootFrame = Nothing
+  | otherwise = maybe parent ((`mplus` parent) . sel) $ getSlotNamed f sn
+  where
+    parent = doNSearch sel w (getParentFrame w f) sn
 
 {-
 Updates one frame's slot with the given one. Removes any existing slot with
