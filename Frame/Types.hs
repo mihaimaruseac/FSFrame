@@ -206,3 +206,21 @@ Returns the preferences from a `FSState` state.
 -}
 fsPrefs = snd
 
+{-
+Returns the default value from a slot, if enabled.
+-}
+getSlotDefault :: Pref -> Slot -> Maybe Obj
+getSlotDefault p s = if prefDefaultsEnabled p then slotDefault s else Nothing
+
+{-
+Returns the if-needed action from a slot, if enabled.
+-}
+getSlotIfNeeded :: Pref -> Slot -> Maybe Action
+getSlotIfNeeded p s = if prefActionsEnabled p then slotIfNeeded s else Nothing
+
+{-
+Returns the if-added action from a slot, if enabled.
+-}
+getSlotIfAdded :: Pref -> Slot -> Maybe Action
+getSlotIfAdded p s = if prefActionsEnabled p then slotIfAdded s else Nothing
+
