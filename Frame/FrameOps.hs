@@ -15,31 +15,6 @@ import Data.Maybe
 import Frame.Action
 import Frame.Types
 
-import Debug.Trace
-test =
-  execState (fcreate "Roman" Individual "Truck") $
-  execState (fcreate "Logan" Individual "GermanCar") $
-  execState (fcreate "BMW" Individual "GermanCar") $
-  execState (fcreate "Toyota" Individual "JapaneseCar") $
-  execState (fcreate "GermanCar" Generic "Car") $
-  execState (fcreate "JapaneseCar" Generic "Car") $
-  execState (fcreate "Truck" Generic "Vehicle") $
-  execState (fcreate "Car" Generic "Vehicle") $
-  execState (fcreate "Vehicle" Generic gROOT) initialState
-testput =
-  execState (fput "Vehicle" "fuelConsumption" (Just (R 4.2)) Nothing Nothing Nothing) $
-  execState (fput "Vehicle" "rom_price" Nothing Nothing (Just "-1") Nothing) $ -- TODO: implement proper action
-  execState (fput "Roman" "rom_price" (Just (I 52)) Nothing Nothing Nothing) $
-  execState (fput "Logan" "rom_price" (Just (I 42)) Nothing Nothing Nothing) $
-  execState (fput "Logan" "country" (Just (S "Romania")) Nothing Nothing Nothing) $
-  execState (fput "Roman" "country" (Just (S "Romania")) Nothing Nothing Nothing) $
-  execState (fput "GermanCar" "country" (Just (S "Germany")) Nothing Nothing Nothing) $
-  execState (fput "JapaneseCar" "country" (Just (S "Japan")) Nothing Nothing Nothing) $
-  execState (fput "Vehicle" "country" Nothing (Just (S "?")) Nothing Nothing) test
-testget =
-  evalState (fget "Car" "country") $
-  execState (fput "Car" "country" Nothing Nothing (Just "-2") Nothing) testput
-
 {-
 Evaluates a `FCREATE` command.
 -}

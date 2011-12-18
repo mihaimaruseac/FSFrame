@@ -130,6 +130,7 @@ data Obj
   = I Integer
   | R Double
   | S String
+  | B Bool
   | A Action
   | F String -- A Frame but keep only its name
   deriving (Eq, Show, Read)

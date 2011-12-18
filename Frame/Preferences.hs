@@ -13,14 +13,14 @@ import Frame.Types
 {-
 Executes a `FSETPARAMS` operation.
 -}
-fSetParams :: ParamSetting -> Bool -> State FSState ()
-fSetParams ps bv = modifyPref $ updatePrefs ps bv
+fsetparams :: ParamSetting -> Bool -> State FSState ()
+fsetparams ps bv = modifyPref $ updatePrefs ps bv
 
 {-
 Executes a `FGETPARAMS` operation.
 -}
-fGetParams :: ParamSetting -> State FSState Bool
-fGetParams ps = fmap (readPrefs ps) $ gets fsPrefs
+fgetparams :: ParamSetting -> State FSState Bool
+fgetparams ps = fmap (readPrefs ps) $ gets fsPrefs
 
 {-
 Reads preferences.
