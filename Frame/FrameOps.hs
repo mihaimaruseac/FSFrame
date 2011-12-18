@@ -153,8 +153,10 @@ Checks if a name is valid.
 -}
 checkValidName :: String -> State FSState ()
 checkValidName s
-  | all isAlphaNum s && isAlpha (head s) = return ()
+  | all isAllowed s && isAlpha (head s) = return ()
   | otherwise = error $ "Invalid name <" ++ s ++ ">"
+  where
+    isAllowed x = isAlphaNum x || x `elem` "_"
 
 {-
 Adds a frame to the world and updates the parent.
