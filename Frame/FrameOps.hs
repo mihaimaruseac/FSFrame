@@ -49,7 +49,7 @@ fcreate name typ parent = do
   let wnames = map frameName w
   checkFrameName name wnames
   -- 3. check if parent exists
-  unless (parent `elem` wnames) $ error $ "Parent does not exist: " ++ parent
+  unless (parent `elem` wnames) $ error $ "Parent `" ++ parent ++ "` does not exist."
   let p = head $ filter (\w -> frameName w == parent) w
   -- 4. update world
   modify . first $ addFrameToWorld name p typ
@@ -89,7 +89,7 @@ fget fname sname = do
          then fgetZ fname sname
          else fgetN fname sname
   -- 3. extract value and execute action if returned
-  when (isNothing o) $ error $ "Slot " ++ sname ++ " not found."
+  when (isNothing o) $ error $ "Slot `" ++ sname ++ "` not found."
   case fromJust o of
     A a -> executeAction a
     x -> return x
@@ -135,7 +135,7 @@ combineSlots (Just s) s' = Slot name value defval ifn ifa
 Gets a frame given its name.
 -}
 getFrameNamed :: [Frame] -> String -> Frame
-getFrameNamed [] fname = error $ "No frame named " ++ fname
+getFrameNamed [] fname = error $ "No frame named `" ++ fname ++ "`."
 getFrameNamed (f:fs) fname
   | frameName f == fname = f
   | otherwise = getFrameNamed fs fname
@@ -158,7 +158,7 @@ Checks if a name is valid.
 checkValidName :: String -> State FSState ()
 checkValidName s
   | all isAllowed s && isAlpha (head s) = return ()
-  | otherwise = error $ "Invalid name <" ++ s ++ ">"
+  | otherwise = error $ "Invalid name `" ++ s ++ "`."
   where
     isAllowed x = isAlphaNum x || x `elem` "_"
 
@@ -177,5 +177,5 @@ Checks for duplicate frame names.
 -}
 checkFrameName :: String -> [String] -> State FSState ()
 checkFrameName name wnames
-  = when (name `elem` wnames) $ error $ "Duplicate frame name " ++ name
+  = when (name `elem` wnames) $ error $ "Duplicate frame name `" ++ name ++ "`."
 
