@@ -56,9 +56,9 @@ mainLoop !s = do
     QUIT -> trace (show s) exitSuccess
     RUN fname -> batchRun fname s >>= mainLoop
     _ -> do
-      let (s, v) = executeCmd s userCmd
+      let (s', v) = executeCmd s userCmd
       when (isJust v) $ print v
-      trace (show (s, v)) $ mainLoop s
+      mainLoop s'
 
 batchRun :: String -> FSState -> IO FSState
 batchRun filename s = do
