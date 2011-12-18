@@ -16,5 +16,5 @@ Execute a simple action. TODO: define it.
 executeAction :: Pref -> Action -> State FSState Obj
 executeAction p a = do
   unless (prefActionsEnabled p) $ error "Action is required but disabled."
-  return undefined
+  error "Action is required but not implemented"
 
