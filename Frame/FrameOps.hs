@@ -12,6 +12,7 @@ import Control.Monad.Trans.State.Strict --(modify, gets, State)
 import Data.Char
 import Data.Maybe
 
+import Frame.Action
 import Frame.Types
 
 import Debug.Trace
@@ -73,6 +74,33 @@ fput fname sname value defaultval ifneeded ifadded = do
   -- 6. update world
   modify . first $ \w -> f' : filter (\f -> frameName f /= fname) w
   -- 7. search and execute `if-added` actions TODO
+
+{-
+Evaluates a `FGET` command.
+-}
+fget :: String -> String -> State FSState Obj
+fget fname sname = do
+  -- 1. get preferences
+  prefs <- gets fsPrefs
+  -- 2. start search and get basic value
+  o <- if prefSearchTypeIsZ prefs
+         then fgetZ fname sname
+         else fgetN fname sname
+  -- 3. extract value and execute action if returned
+  when (isNothing o) $ error $ "Slot " ++ sname ++ " not found."
+  case fromJust o of
+    A a -> executeAction a
+    x -> return x
+
+{-
+Retrieves an attirbute using the Z order.
+-}
+fgetZ = undefined
+
+{-
+Retrieves an attirbute using the N order.
+-}
+fgetN = undefined
 
 {-
 Updates one frame's slot with the given one. Removes any existing slot with
