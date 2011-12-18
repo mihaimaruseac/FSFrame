@@ -51,6 +51,7 @@ mainTUI = mainLoop initialState
 
 mainLoop :: FSState -> IO ()
 mainLoop !s = do
+  putStr "> "
   userCmd <- readLn
   case userCmd of
     QUIT -> exitSuccess

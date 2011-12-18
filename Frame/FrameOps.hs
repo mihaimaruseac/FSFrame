@@ -37,15 +37,12 @@ evaluateExpr (DOT fname sname) = fget fname sname >>= return . Just
 evaluateExpr (PREF pname) = fgetparams pname >>= return . Just . B
 
 {-
-Executes a user command. To be called only for commands not requiring a value
-to be returned. Otherwise, the returned value is ignored.
+Executes a user command having side effects (called via EXEC).
 -}
 execUserCmd :: FSCmd -> State FSState ()
 execUserCmd (FCREATE fname pname typ) = fcreate fname typ pname
-execUserCmd (FGET fname sname) = fget fname sname >> return ()
 execUserCmd (FPUT fname sname ptype) = doPut fname sname ptype
 execUserCmd (FSETPARAMS param value) = fsetparams param value
-execUserCmd (FGETPARAMS param) = fgetparams param >> return ()
 
 {-
 Helper function to put a slot.

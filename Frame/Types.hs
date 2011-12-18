@@ -35,10 +35,8 @@ Commands to manipulate the entire frame system (frames or preferences).
 -}
 data FSCmd
   = FCREATE String String FrameType -- FCREATE frame_name parent_name type
-  | FGET String String -- FGET frame_name slot_name
   | FPUT String String PutType -- FPUT frame_name slot_name ptype
   | FSETPARAMS ParamSetting Bool -- FSETPARAMS paramtype value
-  | FGETPARAMS ParamSetting -- FGETPARAMS paramtype
   deriving (Eq, Show, Read)
 
 {-

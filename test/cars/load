@@ -15,6 +15,5 @@ EXEC (FPUT "Logan" "country" (PutV (S "Romania")))
 EXEC (FPUT "Logan" "rom_price" (PutV (I 42)))
 EXEC (FPUT "Roman" "rom_price" (PutV (I 52)))
 EXEC (FPUT "Vehicle" "fuelConsumption" (PutV (R 4.2)))
-EXEC (FGET "Car" "country")
 EVAL (DOT "Car" "country")
 
