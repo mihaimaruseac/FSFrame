@@ -145,31 +145,31 @@ fget fname sname = do
   -- 3. extract value and execute action if returned
   when (isNothing o) $ error $ "Slot `" ++ sname ++ "` not found."
   case fromJust o of
-    A a -> executeAction prefs a
+    A a -> executeAction fname sname Nothing prefs a
     x -> return x
 
 {-
 Execute a simple action.
 -}
-executeAction :: Pref -> Action -> State FSState Obj
-executeAction p a = do
+executeAction :: String -> String -> Maybe Obj -> Pref -> Action -> State FSState Obj
+executeAction fname sname obj p a = do
   unless (prefActionsEnabled p) $ error "Action is required but disabled."
-  o <- evalAct a
+  o <- evalAct fname sname obj a
   when (isNothing o) $ error $ "Action didn't return a value."
   case fromJust o of
-    A a -> gets fsPrefs >>= \p -> executeAction p a
+    A a -> gets fsPrefs >>= \p -> executeAction fname sname obj p a
     x -> return x
 
 {-
 Helper function for action running.
 -}
-evalAct :: [UserCmd] -> State FSState (Maybe Obj)
-evalAct [] = return Nothing
-evalAct (cmd:cmds) = do
+evalAct :: String -> String -> Maybe Obj -> [UserCmd] -> State FSState (Maybe Obj)
+evalAct _ _ _ [] = return Nothing
+evalAct fname sname obj (cmd:cmds) = do
   s <- get
   let (s', o) = executeCmd s cmd
   put s'
-  r <- evalAct cmds
+  r <- evalAct fname sname obj cmds
   return $ r `mplus` o
 
 {-
@@ -189,7 +189,7 @@ getValueZFromSlot :: World -> Pref -> Frame -> Slot -> State FSState (Maybe Obj)
 getValueZFromSlot w p f s = maybe search retfct $ slotValue s
   where
     retfct = return . Just
-    act_result a = executeAction p a >>= retfct
+    act_result a = executeAction (frameName f) (slotName s) Nothing p a >>= retfct
     search_parent = fgetZ w p (getParentFrame w f) (slotName s)
     search = if prefDefaultThenNeeded p then sDNP else sNDP
     sDNP = maybe sNP retfct $ getSlotDefault p s
@@ -213,7 +213,7 @@ startNSearch :: World -> Pref -> Frame -> String -> State FSState (Maybe Obj)
 startNSearch w p f s = if prefDefaultThenNeeded p then sVDN else sVND
   where
     retfct = return . Just
-    act_result a = executeAction p a >>= retfct
+    act_result a = executeAction (frameName f) s Nothing p a >>= retfct
     sVDN = maybe stDN retfct $ doNSearch slotValue w f s
     sVND = maybe stND retfct $ doNSearch slotValue w f s
     stDN = if prefDefaultsEnabled p then sDN else stN
