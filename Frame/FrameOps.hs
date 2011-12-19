@@ -84,6 +84,10 @@ doPut f s (PutV o) = fput f s (Just o) Nothing Nothing Nothing
 doPut f s (PutD o) = fput f s Nothing (Just o) Nothing Nothing
 doPut f s (PutN o) = fput f s Nothing Nothing (Just o) Nothing
 doPut f s (PutA o) = fput f s Nothing Nothing Nothing (Just o)
+doPut f s (PutVE e)
+  = evaluateExpr e >>= \o -> fput f s (Just o) Nothing Nothing Nothing
+doPut f s (PutDE e)
+  = evaluateExpr e >>= \o -> fput f s Nothing (Just o) Nothing Nothing
 
 {-
 Evaluates a `FCREATE` command.

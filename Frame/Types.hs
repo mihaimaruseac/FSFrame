@@ -55,6 +55,8 @@ this field via the `PutType` option.
 data PutType
   = PutV Obj -- fill in value for this slot
   | PutD Obj -- fill in default value for this slot
+  | PutVE Expr -- eval expr then PutV Obj (Expr -> OBJ Obj)
+  | PutDE Expr -- eval expr then PutD Obj (Expr -> OBJ Obj)
   | PutN Action -- fill in `if-needed` action for this slot
   | PutA Action -- fill in `if-added` action for this slot
   deriving (Eq, Show, Read)
