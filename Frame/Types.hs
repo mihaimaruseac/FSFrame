@@ -17,6 +17,7 @@ data UserCmd
   = QUIT -- leave application, only for userspace
   | RUN String -- loads and executes a batch file, only for userspace
   | DUMP -- prints the entire world, only for userspace and only in TUI
+  | GRAPH String -- saves the world to a DOT file and gets a diagram from it
   | EXEC FSCmd -- execute a FSCmd, only for it's side effect
   | EVAL Expr -- evaluates an expression
   deriving (Eq, Show, Read)
@@ -169,7 +170,13 @@ data Obj
   | B Bool
   | A Action
   | F String -- A Frame but keep only its name
-  deriving (Eq, Show, Read)
+  deriving (Eq, Read)
+
+instance Show Obj where
+  show (R x) = show x
+  show (S s) = s
+  show (B b) = show b
+  show _ = "x"
 
 {-
 Conversions to basic types.

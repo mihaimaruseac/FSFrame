@@ -26,6 +26,7 @@ executeCmd :: ActionInput -> FSState -> UserCmd -> (FSState, Maybe Obj)
 executeCmd _ _ QUIT = error "QUIT is reserved for userspace."
 executeCmd _ _ (RUN _) = error "RUN is reserved for userspace."
 executeCmd _ _ DUMP = error "DUMP is reserved for userspace."
+executeCmd _ _ (GRAPH _) = error "GRAPH is reserved for userspace."
 executeCmd ai s (EXEC fscmd) = (execState (execUserCmd ai fscmd) s, Nothing)
 executeCmd ai s (EVAL expr) = second Just $ swap $ runState (evaluateExpr ai expr) s
 
@@ -169,7 +170,7 @@ searchExecute :: String -> String -> Maybe Obj -> State FSState ()
 searchExecute fname sname obj = do
   a <- searchAction fname sname
   p <- gets fsPrefs
-  trace ("Act" ++ show a ++ show obj) $executeActionMaybe fname sname obj p a
+  executeActionMaybe fname sname obj p a
   return () -- ignore any result in if-added actions
 
 {-
