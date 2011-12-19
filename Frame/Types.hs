@@ -190,6 +190,11 @@ conditions.
 type Action = [UserCmd]
 
 {-
+No action.
+-}
+noAction = [EVAL (OBJ (R 42))]
+
+{-
 A preference record contains all user preferences regarding the frame system.
 It can be changed when needed. Functions for setting and temporarily changing
 the preferences are defined in `Preferences.hs` module.

@@ -26,7 +26,7 @@ executeCmd :: ActionInput -> FSState -> UserCmd -> (FSState, Maybe Obj)
 executeCmd _ _ QUIT = error "QUIT is reserved for userspace."
 executeCmd _ _ (RUN _) = error "RUN is reserved for userspace."
 executeCmd _ _ DUMP = error "DUMP is reserved for userspace."
-executeCmd _ s (EXEC fscmd) = (execState (execUserCmd fscmd) s, Nothing)
+executeCmd ai s (EXEC fscmd) = (execState (execUserCmd ai fscmd) s, Nothing)
 executeCmd ai s (EVAL expr) = second Just $ swap $ runState (evaluateExpr ai expr) s
 
 {-
@@ -83,23 +83,23 @@ evaluateExpr ai SVAL =
 {-
 Executes a user command having side effects (called via EXEC).
 -}
-execUserCmd :: FSCmd -> State FSState ()
-execUserCmd (FCREATE fname pname typ) = fcreate fname typ pname
-execUserCmd (FPUT fname sname ptype) = doPut fname sname ptype
-execUserCmd (FSETPARAMS param value) = fsetparams param value
+execUserCmd :: ActionInput -> FSCmd -> State FSState ()
+execUserCmd _ (FCREATE fname pname typ) = fcreate fname typ pname
+execUserCmd ai (FPUT fname sname ptype) = doPut ai fname sname ptype
+execUserCmd _ (FSETPARAMS param value) = fsetparams param value
 
 {-
 Helper function to put a slot.
 -}
-doPut :: String -> String -> PutType -> State FSState ()
-doPut f s (PutV o) = fput f s (Just o) Nothing Nothing Nothing
-doPut f s (PutD o) = fput f s Nothing (Just o) Nothing Nothing
-doPut f s (PutN o) = fput f s Nothing Nothing (Just o) Nothing
-doPut f s (PutA o) = fput f s Nothing Nothing Nothing (Just o)
-doPut f s (PutVE e)
-  = evaluateExpr Nothing e >>= \o -> fput f s (Just o) Nothing Nothing Nothing
-doPut f s (PutDE e)
-  = evaluateExpr Nothing e >>= \o -> fput f s Nothing (Just o) Nothing Nothing
+doPut :: ActionInput -> String -> String -> PutType -> State FSState ()
+doPut _ f s (PutV o) = fput f s (Just o) Nothing Nothing Nothing
+doPut _ f s (PutD o) = fput f s Nothing (Just o) Nothing Nothing
+doPut _ f s (PutN o) = fput f s Nothing Nothing (Just o) Nothing
+doPut _ f s (PutA o) = fput f s Nothing Nothing Nothing (Just o)
+doPut ai f s (PutVE e)
+  = evaluateExpr ai e >>= \o -> fput f s (Just o) Nothing Nothing Nothing
+doPut ai f s (PutDE e)
+  = evaluateExpr ai e >>= \o -> fput f s Nothing (Just o) Nothing Nothing
 
 {-
 Evaluates a `FCREATE` command.
@@ -138,7 +138,9 @@ fput fname sname value defaultval ifneeded ifadded = do
   let f' = updateFrameSlot f s
   -- 6. update world
   modifyWorld $ \w -> f' : filter (\f -> frameName f /= fname) w
-  -- 7. search and execute `if-added` actions TODO
+  -- 7. search and execute `if-added` actions only if a value got added
+  p <- gets fsPrefs
+  when (isJust value && prefActionsEnabled p) (searchExecute fname sname value)
 
 {-
 Evaluates a `FGET` command.
@@ -161,16 +163,50 @@ fget fname sname = do
     x -> return x
 
 {-
+Searches and executes an if-added action.
+-}
+searchExecute :: String -> String -> Maybe Obj -> State FSState ()
+searchExecute fname sname obj = do
+  a <- searchAction fname sname
+  p <- gets fsPrefs
+  trace ("Act" ++ show a ++ show obj) $executeActionMaybe fname sname obj p a
+  return () -- ignore any result in if-added actions
+
+{-
+Searches an if-added action.
+-}
+searchAction :: String -> String -> State FSState Action
+searchAction fname sname
+  | fname == gROOT = return noAction
+  | otherwise = do
+    w <- gets fsWorld
+    let f = getFrameNamed w fname
+    let s = getSlotNamed f sname
+    maybe (parent f) (getSlot f) s
+  where
+    getSlot f s = maybe (parent f) return $ slotIfAdded s
+    parent f = searchAction (frameParent f) sname
+
+{-
 Execute a simple action.
 -}
 executeAction :: String -> String -> Maybe Obj -> Pref -> Action -> State FSState Obj
 executeAction fname sname obj p a = do
   unless (prefActionsEnabled p) $ error "Action is required but disabled."
-  o <- evalAct fname sname obj a
+  o <- executeActionMaybe fname sname obj p a
   when (isNothing o) $ error "Action didn't return a value."
-  case fromJust o of
-    A a -> gets fsPrefs >>= \p -> executeAction fname sname obj p a
-    x -> return x
+  return $ fromJust o
+
+{-
+Executes a simple action but doesn't fail if no result is produced.
+-}
+executeActionMaybe :: String -> String -> Maybe Obj -> Pref -> Action -> State FSState (Maybe Obj)
+executeActionMaybe fname sname obj p a = do
+  o <- evalAct fname sname obj a
+  if isNothing o then return Nothing
+    else case fromJust o of
+      A a -> gets fsPrefs >>= \p -> executeActionMaybe fname sname obj p a
+      x -> return $ Just x
 
 {-
 Helper function for action running.
