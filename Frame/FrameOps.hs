@@ -27,15 +27,46 @@ executeCmd _ QUIT = error "QUIT is reserved for userspace."
 executeCmd _ (RUN _) = error "RUN is reserved for userspace."
 executeCmd _ DUMP = error "DUMP is reserved for userspace."
 executeCmd s (EXEC fscmd) = (execState (execUserCmd fscmd) s, Nothing)
-executeCmd s (EVAL expr) = swap $ runState (evaluateExpr expr) s
+executeCmd s (EVAL expr) = second Just $ swap $ runState (evaluateExpr expr) s
 
 {-
 Evaluates an expression. Can have state effects.
 -}
-evaluateExpr :: Expr -> State FSState (Maybe Obj)
-evaluateExpr (DOT fname sname) = fget fname sname >>= return . Just
-evaluateExpr (PREF pname) = fgetparams pname >>= return . Just . B
-evaluateExpr (OBJ o) = return $ Just o
+evaluateExpr :: Expr -> State FSState Obj
+evaluateExpr (DOT fname sname) = fget fname sname
+evaluateExpr (PREF pname) = fgetparams pname
+evaluateExpr (OBJ o) = return o
+evaluateExpr (NOT expr) = do
+  v <- evaluateExpr expr
+  return . B . not . unB $ v
+evaluateExpr (AND e1 e2) = do
+  v1 <- evaluateExpr e1
+  v2 <- evaluateExpr e2
+  return . B . all unB $ [v1, v2]
+evaluateExpr (OR e1 e2) = do
+  v1 <- evaluateExpr e1
+  v2 <- evaluateExpr e2
+  return . B . any unB $ [v1, v2]
+evaluateExpr (CONCAT e1 e2) = do
+  v1 <- evaluateExpr e1
+  v2 <- evaluateExpr e2
+  return . S . foldl1 (++) . map unS $ [v1, v2]
+evaluateExpr (ADD e1 e2) = do
+  v1 <- evaluateExpr e1
+  v2 <- evaluateExpr e2
+  return . R $ unR v1 + unR v2
+evaluateExpr (SUB e1 e2) = do
+  v1 <- evaluateExpr e1
+  v2 <- evaluateExpr e2
+  return . R $ unR v1 - unR v2
+evaluateExpr (MUL e1 e2) = do
+  v1 <- evaluateExpr e1
+  v2 <- evaluateExpr e2
+  return . R $ unR v1 * unR v2
+evaluateExpr (DIV e1 e2) = do
+  v1 <- evaluateExpr e1
+  v2 <- evaluateExpr e2
+  return . R $ unR v1 / unR v2
 
 {-
 Executes a user command having side effects (called via EXEC).

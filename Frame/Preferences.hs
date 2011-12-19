@@ -19,8 +19,8 @@ fsetparams ps bv = modifyPref $ updatePrefs ps bv
 {-
 Executes a `FGETPARAMS` operation.
 -}
-fgetparams :: ParamSetting -> State FSState Bool
-fgetparams ps = fmap (readPrefs ps) $ gets fsPrefs
+fgetparams :: ParamSetting -> State FSState Obj
+fgetparams ps = fmap (B . readPrefs ps) $ gets fsPrefs
 
 {-
 Reads preferences.

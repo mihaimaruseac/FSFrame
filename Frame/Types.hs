@@ -29,6 +29,14 @@ data Expr
   = DOT String String -- frame.slot or FGET frame slot
   | PREF ParamSetting -- return a preference
   | OBJ Obj -- a real `Obj` to be returned (or used in complex expressions)
+  | NOT Expr
+  | AND Expr Expr
+  | OR Expr Expr
+  | CONCAT Expr Expr
+  | ADD Expr Expr
+  | SUB Expr Expr
+  | MUL Expr Expr
+  | DIV Expr Expr
   deriving (Eq, Show, Read)
 
 {-
@@ -146,13 +154,24 @@ An object can be everything in our universe: an integer, a float, a string, an
 action or another frame.
 -}
 data Obj
-  = I Integer
-  | R Double
+  = R Double
   | S String
   | B Bool
   | A Action
   | F String -- A Frame but keep only its name
   deriving (Eq, Show, Read)
+
+{-
+Conversions to basic types.
+-}
+unB :: Obj -> Bool
+unB (B b) = b
+unB t = error $ "Cannot convert `" ++ show t ++ " to Bool."
+unS :: Obj -> String
+unS (S s) = s
+unS t = error $ "Cannot convert `" ++ show t ++ " to String."
+unR (R d) = d
+unR t = error $ "Not a number `" ++ show t ++ "'."
 
 {-
 An action is a precompiled program to be executed when triggered by some
