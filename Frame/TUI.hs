@@ -38,7 +38,7 @@ mainLoop !s = do
       RUN fname -> batchRun fname s >>= mainLoop
       DUMP -> print s >> mainLoop s
       _ -> do
-        let (s', v) = executeCmd s userCmd
+        let (s', v) = executeCmd Nothing s userCmd
         when (isJust v) $ print $ fromJust v
         mainLoop s'
 
@@ -51,5 +51,5 @@ batchRun filename s = do
     hnd :: E.IOException -> a
     hnd _ = error $ "File not found `" ++ filename ++ "'."
     nonEmpty s = not $ all isSpace s
-    executeCmd' s c = fst $ executeCmd s c
+    executeCmd' s c = fst $ executeCmd Nothing s c
 

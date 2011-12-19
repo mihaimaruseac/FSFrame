@@ -22,51 +22,63 @@ import Debug.Trace
 Executes an user command. Basically, call helper functions to do the actual
 work for us.
 -}
-executeCmd :: FSState -> UserCmd -> (FSState, Maybe Obj)
-executeCmd _ QUIT = error "QUIT is reserved for userspace."
-executeCmd _ (RUN _) = error "RUN is reserved for userspace."
-executeCmd _ DUMP = error "DUMP is reserved for userspace."
-executeCmd s (EXEC fscmd) = (execState (execUserCmd fscmd) s, Nothing)
-executeCmd s (EVAL expr) = second Just $ swap $ runState (evaluateExpr expr) s
+executeCmd :: ActionInput -> FSState -> UserCmd -> (FSState, Maybe Obj)
+executeCmd _ _ QUIT = error "QUIT is reserved for userspace."
+executeCmd _ _ (RUN _) = error "RUN is reserved for userspace."
+executeCmd _ _ DUMP = error "DUMP is reserved for userspace."
+executeCmd _ s (EXEC fscmd) = (execState (execUserCmd fscmd) s, Nothing)
+executeCmd ai s (EVAL expr) = second Just $ swap $ runState (evaluateExpr ai expr) s
 
 {-
 Evaluates an expression. Can have state effects.
 -}
-evaluateExpr :: Expr -> State FSState Obj
-evaluateExpr (DOT fname sname) = fget fname sname
-evaluateExpr (PREF pname) = fgetparams pname
-evaluateExpr (OBJ o) = return o
-evaluateExpr (NOT expr) = do
-  v <- evaluateExpr expr
+evaluateExpr :: ActionInput -> Expr -> State FSState Obj
+evaluateExpr _ (DOT fname sname) = fget fname sname
+evaluateExpr _ (PREF pname) = fgetparams pname
+evaluateExpr _ (OBJ o) = return o
+evaluateExpr ai (NOT expr) = do
+  v <- evaluateExpr ai expr
   return . B . not . unB $ v
-evaluateExpr (AND e1 e2) = do
-  v1 <- evaluateExpr e1
-  v2 <- evaluateExpr e2
+evaluateExpr ai (AND e1 e2) = do
+  v1 <- evaluateExpr ai e1
+  v2 <- evaluateExpr ai e2
   return . B . all unB $ [v1, v2]
-evaluateExpr (OR e1 e2) = do
-  v1 <- evaluateExpr e1
-  v2 <- evaluateExpr e2
+evaluateExpr ai (OR e1 e2) = do
+  v1 <- evaluateExpr ai e1
+  v2 <- evaluateExpr ai e2
   return . B . any unB $ [v1, v2]
-evaluateExpr (CONCAT e1 e2) = do
-  v1 <- evaluateExpr e1
-  v2 <- evaluateExpr e2
+evaluateExpr ai (CONCAT e1 e2) = do
+  v1 <- evaluateExpr ai e1
+  v2 <- evaluateExpr ai e2
   return . S . foldl1 (++) . map unS $ [v1, v2]
-evaluateExpr (ADD e1 e2) = do
-  v1 <- evaluateExpr e1
-  v2 <- evaluateExpr e2
+evaluateExpr ai (ADD e1 e2) = do
+  v1 <- evaluateExpr ai e1
+  v2 <- evaluateExpr ai e2
   return . R $ unR v1 + unR v2
-evaluateExpr (SUB e1 e2) = do
-  v1 <- evaluateExpr e1
-  v2 <- evaluateExpr e2
+evaluateExpr ai (SUB e1 e2) = do
+  v1 <- evaluateExpr ai e1
+  v2 <- evaluateExpr ai e2
   return . R $ unR v1 - unR v2
-evaluateExpr (MUL e1 e2) = do
-  v1 <- evaluateExpr e1
-  v2 <- evaluateExpr e2
+evaluateExpr ai (MUL e1 e2) = do
+  v1 <- evaluateExpr ai e1
+  v2 <- evaluateExpr ai e2
   return . R $ unR v1 * unR v2
-evaluateExpr (DIV e1 e2) = do
-  v1 <- evaluateExpr e1
-  v2 <- evaluateExpr e2
+evaluateExpr ai (DIV e1 e2) = do
+  v1 <- evaluateExpr ai e1
+  v2 <- evaluateExpr ai e2
   return . R $ unR v1 / unR v2
+evaluateExpr ai FNAME =
+  case ai of
+    Just (fname, _, _) -> return . S $ fname
+    _ -> error "Cannot get FNAME. Check action."
+evaluateExpr ai SNAME =
+  case ai of
+    Just (_, sname, _) -> return . S $ sname
+    _ -> error "Cannot get SNAME. Check action."
+evaluateExpr ai SVAL =
+  case ai of
+    Just (_, _, Just o) -> return o
+    _ -> error "Cannot get SVAL. Check action."
 
 {-
 Executes a user command having side effects (called via EXEC).
@@ -85,9 +97,9 @@ doPut f s (PutD o) = fput f s Nothing (Just o) Nothing Nothing
 doPut f s (PutN o) = fput f s Nothing Nothing (Just o) Nothing
 doPut f s (PutA o) = fput f s Nothing Nothing Nothing (Just o)
 doPut f s (PutVE e)
-  = evaluateExpr e >>= \o -> fput f s (Just o) Nothing Nothing Nothing
+  = evaluateExpr Nothing e >>= \o -> fput f s (Just o) Nothing Nothing Nothing
 doPut f s (PutDE e)
-  = evaluateExpr e >>= \o -> fput f s Nothing (Just o) Nothing Nothing
+  = evaluateExpr Nothing e >>= \o -> fput f s Nothing (Just o) Nothing Nothing
 
 {-
 Evaluates a `FCREATE` command.
@@ -155,7 +167,7 @@ executeAction :: String -> String -> Maybe Obj -> Pref -> Action -> State FSStat
 executeAction fname sname obj p a = do
   unless (prefActionsEnabled p) $ error "Action is required but disabled."
   o <- evalAct fname sname obj a
-  when (isNothing o) $ error $ "Action didn't return a value."
+  when (isNothing o) $ error "Action didn't return a value."
   case fromJust o of
     A a -> gets fsPrefs >>= \p -> executeAction fname sname obj p a
     x -> return x
@@ -167,7 +179,7 @@ evalAct :: String -> String -> Maybe Obj -> [UserCmd] -> State FSState (Maybe Ob
 evalAct _ _ _ [] = return Nothing
 evalAct fname sname obj (cmd:cmds) = do
   s <- get
-  let (s', o) = executeCmd s cmd
+  let (s', o) = executeCmd (Just (fname, sname, obj)) s cmd
   put s'
   r <- evalAct fname sname obj cmds
   return $ r `mplus` o

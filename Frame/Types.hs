@@ -37,7 +37,15 @@ data Expr
   | SUB Expr Expr
   | MUL Expr Expr
   | DIV Expr Expr
+  | FNAME -- frame name for actions (if-needed, if-added)
+  | SNAME -- slot name
+  | SVAL -- slot value if added, in if-added actions
   deriving (Eq, Show, Read)
+
+{-
+Action special input.
+-}
+type ActionInput = Maybe (String, String, Maybe Obj)
 
 {-
 Commands to manipulate the entire frame system (frames or preferences).
