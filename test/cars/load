@@ -1,5 +1,6 @@
 EXEC (FCREATE "Vehicle" "ROOT" Generic)
 EXEC (FCREATE "Car" "Vehicle" Generic)
+EXEC (FPUT "Car" "country" (PutN [EVAL (OBJ (S "unknown country"))]))
 EXEC (FCREATE "Truck" "Vehicle" Generic)
 EXEC (FCREATE "JapaneseCar" "Car" Generic)
 EXEC (FCREATE "GermanCar" "Car" Generic)

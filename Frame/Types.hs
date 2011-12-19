@@ -175,10 +175,9 @@ unR t = error $ "Not a number `" ++ show t ++ "'."
 
 {-
 An action is a precompiled program to be executed when triggered by some
-conditions. The precompilation and the execution of these actions is handled
-in `Action.hs` module.
+conditions.
 -}
-type Action = String -- TODO: this should be changed
+type Action = [UserCmd]
 
 {-
 A preference record contains all user preferences regarding the frame system.
@@ -194,7 +193,6 @@ data Pref = Pref
   -- if True, default values have higher priority than if-needed actions
   , prefSearchTypeIsZ :: Bool
   -- if True, search is done in Z order (see `SearchType` below)
-  -- TODO: this can be changed
   } deriving (Eq, Show, Read)
 
 {-

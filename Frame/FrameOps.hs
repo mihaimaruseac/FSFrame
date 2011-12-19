@@ -145,12 +145,28 @@ fget fname sname = do
     x -> return x
 
 {-
-Execute a simple action. TODO: define it.
+Execute a simple action.
 -}
 executeAction :: Pref -> Action -> State FSState Obj
 executeAction p a = do
   unless (prefActionsEnabled p) $ error "Action is required but disabled."
-  error "Action is required but not implemented"
+  o <- evalAct a
+  when (isNothing o) $ error $ "Action didn't return a value."
+  case fromJust o of
+    A a -> gets fsPrefs >>= \p -> executeAction p a
+    x -> return x
+
+{-
+Helper function for action running.
+-}
+evalAct :: [UserCmd] -> State FSState (Maybe Obj)
+evalAct [] = return Nothing
+evalAct (cmd:cmds) = do
+  s <- get
+  let (s', o) = executeCmd s cmd
+  put s'
+  r <- evalAct cmds
+  return $ r `mplus` o
 
 {-
 Retrieves an attribute using the Z order.
