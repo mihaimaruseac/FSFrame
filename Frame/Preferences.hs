@@ -1,4 +1,4 @@
-module Frame.Preferences
+module Frame.Preferences (fsetparams, fgetparams)
 where
 
 {-
@@ -6,7 +6,7 @@ This module implements functions to change and retrieve the preferences
 regarding a frame system.
 -}
 
-import Control.Monad.Trans.State.Strict
+import Control.Monad.Trans.State.Strict (State, gets)
 
 import Frame.Types
 
@@ -21,6 +21,10 @@ Executes a `FGETPARAMS` operation.
 -}
 fgetparams :: ParamSetting -> State FSState Obj
 fgetparams ps = fmap (B . readPrefs ps) $ gets fsPrefs
+
+{-
+Private functions.
+-}
 
 {-
 Reads preferences.

@@ -1,6 +1,6 @@
 {-# Language BangPatterns #-}
 
-module Frame.TUI
+module Frame.TUI (mainTUI)
 where
 
 {-
@@ -9,23 +9,28 @@ use functions defined here. Any GUI functionality will be implemented on top
 of this module.
 -}
 
-import qualified Control.Exception as E
-import Control.Monad
-import Control.Monad.Trans.State.Strict --(modify, gets, State)
-import Data.Char
-import Data.List
-import Data.Maybe
-import System.Cmd
-import System.Exit
-import System.IO
+import qualified Control.Exception as E (handle, ErrorCall, IOException)
+import Control.Monad (when)
+import Data.Char (isSpace)
+import Data.List (foldl')
+import Data.Maybe (isJust, fromJust)
+import System.Cmd (system)
+import System.Exit (exitSuccess)
+import System.IO (hFlush, stdout)
 
+import Frame.DOT
 import Frame.FrameOps
 import Frame.Types
 
-import Debug.Trace
-
+{-
+Main loop of the application.
+-}
 mainTUI :: IO ()
 mainTUI = mainLoop initialState
+
+{-
+Private functions. Used to implement the REPL loop of the TUI.
+-}
 
 {-
 Main REPL loop.
@@ -73,67 +78,4 @@ graph fname s = do
   system $ "dot -Tpng " ++ fnamedot ++  " > " ++ fname
   system $ "eog " ++ fname
   return ()
-
-{-
-Returns a dot representation of the frames.
--}
-dotString :: [Frame] -> String
-dotString s = unlines
-  [ "digraph frame {"
-  , "\tnode [shape=\"Mrecord\"];"
-  , concatMap pPrintFrame s
-  , "}"
-  ]
-
-{-
-Pretty prints a frame for DOT display.
--}
-pPrintFrame :: Frame -> String
-pPrintFrame f = unlines . concat $ [[pPrintFrameContent f], pPrintFrameLinks f]
-
-{-
-Pretty prints frame slots.
--}
-pPrintFrameContent :: Frame -> String
-pPrintFrameContent f = "\t" ++ show n ++ " [\n\t\tcolor = " ++ c ++ ",\n\t\t"
-  ++ "label = \"{" ++ n ++ pPrintSlots (frameSlots f) ++ "}\"];\n"
-  {-
-  [ ["\t", show n, " ["] -- label and start options
-  , ["\t\t", "color = ", c, ","] -- color
-  , ["\t\t", "label = \"{", n, "\\"] -- frame name
-  , pPrintSlots (frameSlots f)
-  , ["}\"];"] -- end
-  ]
-  -}
-  where
-    n = frameName f
-    c = if frameType f == Generic then "red" else "black"
-
-{-
-Pretty prints slots of a frame.
--}
-pPrintSlots :: [Slot] -> String
-pPrintSlots [] = ""
-pPrintSlots (s:ss) = "|\\\n" ++ pPrintSlot s ++
-  concatMap (\s -> "|\\\n" ++ pPrintSlot s) ss
-
-{-
-Pretty prints a slot.
--}
-pPrintSlot :: Slot -> String
-pPrintSlot s = "{" ++ slotName s ++ "|" ++ v ++ "|" ++ d ++ "|" ++ n ++ "|" ++ a ++ "}"
-  where
-    getF f g = maybe "-" g $ f s
-    v = getF slotValue show
-    d = getF slotDefault show
-    n = getF slotIfNeeded (const "N")
-    a = getF slotIfAdded (const "A")
-
-{-
-Pretty prints frame links.
--}
-pPrintFrameLinks :: Frame -> [String]
-pPrintFrameLinks f = map (\s -> concat ["\t", n, " -> ", show s, ";"]) $ frameChildren f
-  where
-    n = show $ frameName f
 

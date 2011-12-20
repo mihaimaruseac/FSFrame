@@ -1,23 +1,23 @@
-module Frame.FrameOps
+module Frame.FrameOps (executeCmd)
 where
 
 {-
 This module holds the definitions for each operation working on a frame or the
-entire world.
+entire world. It exports only `executeCmd`, all other functions being
+implemented by calling this one.
 -}
 
-import Control.Arrow --(first)
-import Control.Monad
-import Control.Monad.Trans.State.Strict --(modify, gets, State)
-import Data.Char
-import Data.Maybe
-import Data.Tuple
+import Control.Arrow (second)
+import Control.Monad (unless, when, mplus)
+import Control.Monad.Trans.State.Strict (State, get, put, gets, execState, runState)
+import Data.Char (isAlpha, isAlphaNum)
+import Data.Maybe (isJust, isNothing, fromJust)
+import Data.Tuple (swap)
 
 --import Frame.Action
 import Frame.Preferences
 import Frame.Types
 
-import Debug.Trace
 {-
 Executes an user command. Basically, call helper functions to do the actual
 work for us.
@@ -29,6 +29,10 @@ executeCmd _ _ DUMP = error "DUMP is reserved for userspace."
 executeCmd _ _ (GRAPH _) = error "GRAPH is reserved for userspace."
 executeCmd ai s (EXEC fscmd) = (execState (execUserCmd ai fscmd) s, Nothing)
 executeCmd ai s (EVAL expr) = second Just $ swap $ runState (evaluateExpr ai expr) s
+
+{-
+Private functions.
+-}
 
 {-
 Evaluates an expression. Can have state effects.

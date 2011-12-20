@@ -7,8 +7,8 @@ application. It also contains useful functions for working with those types
 (mainly getting values from them or extending them with useful information).
 -}
 
-import Control.Arrow
-import Control.Monad.Trans.State.Strict
+import Control.Arrow (first, second)
+import Control.Monad.Trans.State.Strict (State, modify)
 
 {-
 Userspace commands. Can be issued by an user or by a script / action.
