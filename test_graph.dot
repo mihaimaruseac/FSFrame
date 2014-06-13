@@ -1,0 +1,64 @@
+digraph frame {
+	node [shape="Mrecord"];
+	"Vehicle" [
+		color = red,
+		label = "{Vehicle|\
+{fuelConsumption|4.2|-|-|-}|\
+{country|-|?|-|-}}"];
+
+	"Vehicle" -> "Truck";
+	"Vehicle" -> "Car";
+	"Roman" [
+		color = black,
+		label = "{Roman|\
+{price|52.0|-|-|-}|\
+{country|Romania|-|-|-}}"];
+
+	"Car" [
+		color = red,
+		label = "{Car|\
+{last_added_car|42.0|-|-|-}|\
+{country|-|-|N|-}|\
+{price|-|-|-|A}}"];
+
+	"Car" -> "GermanCar";
+	"Car" -> "JapaneseCar";
+	"Logan" [
+		color = black,
+		label = "{Logan|\
+{price|42.0|-|-|-}|\
+{country|Romania|-|-|-}}"];
+
+	"GermanCar" [
+		color = red,
+		label = "{GermanCar|\
+{country|Germany|-|-|-}}"];
+
+	"GermanCar" -> "Logan";
+	"GermanCar" -> "BMW";
+	"JapaneseCar" [
+		color = red,
+		label = "{JapaneseCar|\
+{country|Japan|-|-|-}}"];
+
+	"JapaneseCar" -> "Toyota";
+	"Truck" [
+		color = red,
+		label = "{Truck}"];
+
+	"Truck" -> "Roman";
+	"BMW" [
+		color = black,
+		label = "{BMW}"];
+
+	"Toyota" [
+		color = black,
+		label = "{Toyota}"];
+
+	"ROOT" [
+		color = red,
+		label = "{ROOT}"];
+
+	"ROOT" -> "Vehicle";
+
+}
